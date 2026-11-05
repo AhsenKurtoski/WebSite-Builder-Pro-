@@ -116,7 +116,7 @@ export function composeSite(input: Brief, options: ComposeOptions = {}): Site {
 
   const slug = slugify(businessName);
   const contact = {
-    email: input.contacts.email || `info@${slug}.it`,
+    email: input.contacts.email.trim(),
     phone: input.contacts.phone || "",
     address: input.contacts.address || "",
     city,
@@ -162,7 +162,7 @@ export function composeSite(input: Brief, options: ComposeOptions = {}): Site {
         links: profile.services.slice(0, 4).map((service, index) => link(service.title, `/servizi#servizio-${index + 1}`)),
       },
     ],
-    legalLinks: [link("Privacy", "/privacy"), link("Cookie", "/cookie")],
+    legalLinks: [link("Privacy", "/privacy"), link("Cookie", "/cookie"), link("Preferenze cookie", "#preferenze-cookie")],
     contacts: true,
   });
 

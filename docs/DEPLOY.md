@@ -50,7 +50,7 @@ Poi: Vercel → **Project → Settings → Environment Variables**, ambiente **P
 | `ATELIER_SESSION_SECRET` | **sì** | Firma le sessioni. Generane una con `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. Senza, Vercel usa la chiave locale di ripiego: le sessioni funzionano ma non sopravvivono a un cambio di macchina e il cookie non viene marcato `Secure`. Almeno 16 caratteri. |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | per l'accesso GitHub | Vedi §3 |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | per l'accesso Google | Vedi §3 |
-| `GEMINI_API_KEY`, `GROQ_API_KEY`, `CEREBRAS_API_KEY`, `OPENROUTER_API_KEY`, `CLOUDFLARE_*` | no | Se presenti, l'AI riscrive i contenuti lato server. Senza, si compila offline: il sito esce completo comunque. |
+| `GEMINI_API_KEY` (predefinita), `GEMINI_API_KEY_FALLBACK` (riserva, idealmente da un altro progetto Google Cloud), `GROQ_API_KEY`, `CEREBRAS_API_KEY`, `OPENROUTER_API_KEY`, `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` | no | Se presenti, l'AI riscrive i contenuti lato server. Senza, si compila offline: il sito esce completo comunque. |
 | `SUPABASE_URL` | per l'archivio cloud | Indirizzo del progetto Supabase, per esempio `https://xxxxxxxx.supabase.co`. |
 | `SUPABASE_PUBLISHABLE_KEY` | per l'archivio cloud | Chiave `sb_publishable_…`: è pubblica per costruzione, serve solo a indirizzare le RPC. |
 | `ATELIER_CLOUD_SECRET` | per l'archivio cloud | Segreto di firma della busta HMAC. **Deve coincidere** con il valore in `atelier.secrets` (vedi §4.1). |

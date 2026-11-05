@@ -10,8 +10,8 @@ import type { CompileEvent, CompileStageId } from "@/lib/ai/compile";
 import { SECTORS, STYLE_PRESET_NAMES, type Sector } from "@/lib/schema/site";
 import { PRESET_LABELS, type StylePreset } from "@/lib/design/tokens";
 import { STYLE_BRIEFS, styleBrief } from "@/lib/design/style-briefs";
+import { SECTOR_LABELS } from "@/lib/compiler/sector-profiles";
 import { listSignatures, saveSite } from "@/lib/storage/site-repo";
-import { loadSessionKeys, maskKey, type StoredKeys } from "@/lib/storage/secure-keys";
 import { ownerOf, useSession } from "@/lib/auth/session-client";
 import { readableBytes } from "@/lib/util/bytes";
 
@@ -56,7 +56,6 @@ export function WizardView({ initialPrompt = "", initialStyle = "" }: { initialP
   const [log, setLog] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const activeKeys = (): StoredKeys => loadSessionKeys();
   const chosen = styleBrief(preset || undefined);
 
   async function generate() {
@@ -91,7 +90,6 @@ export function WizardView({ initialPrompt = "", initialStyle = "" }: { initialP
           sector,
           stylePreset: preset || undefined,
           contacts: { city, email, phone, address: "" },
-          keys: activeKeys(),
           knownSignatures: signatureRows.map((row) => row.signature),
         },
         onEvent,
@@ -168,7 +166,7 @@ export function WizardView({ initialPrompt = "", initialStyle = "" }: { initialP
                   <option value="generic">Rileva automaticamente</option>
                   {SECTORS.filter((item) => item !== "generic").map((item) => (
                     <option key={item} value={item}>
-                      {item}
+                      {SECTOR_LABELS[item]}
                     </option>
                   ))}
                 </select>
@@ -281,17 +279,12 @@ export function WizardView({ initialPrompt = "", initialStyle = "" }: { initialP
           </div>
 
           <div className="card p-5">
-            <h2 className="text-sm font-semibold">Chiavi caricate</h2>
+            <h2 className="text-sm font-semibold">Motore AI</h2>
             <p className="mt-1 text-xs text-ink-500">
-              {Object.keys(loadSessionKeys()).length > 0
-                ? Object.entries(loadSessionKeys())
-                    .filter(([id]) => id !== "cloudflareAccountId")
-                    .map(([id, value]) => `${id}: ${maskKey(value)}`)
-                    .join(" · ")
-                : "Nessuna chiave in memoria: si genera in modalità offline."}
+              Le chiavi sono configurate sul server, mai nel browser. Senza chiavi il composer genera comunque il sito.
             </p>
             <Link className="mt-3 text-[11px] text-accent-400 underline" href="/impostazioni">
-              Gestisci le chiavi
+              Stato delle chiavi
             </Link>
           </div>
         </aside>

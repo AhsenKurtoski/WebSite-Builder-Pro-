@@ -376,8 +376,8 @@ export default function HomePage() {
               Descrivi l&apos;attività. Il primo sito c&apos;è in un minuto.
             </h2>
             <p className="max-w-xl text-sm text-ink-500">
-              Accedi con GitHub o Google, oppure entra in locale: i progetti restano nel tuo browser e le chiavi API non passano mai
-              da un server nostro.
+              Accedi con GitHub o Google, oppure entra in locale: i progetti restano nel tuo browser e le chiavi AI restano sul server
+              e non arrivano mai al browser.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link className="btn btn-primary btn-lg" href="/login?next=/nuovo">

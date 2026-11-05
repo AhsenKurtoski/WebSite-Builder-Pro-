@@ -18,7 +18,8 @@ export type SessionState = {
   loading: boolean;
 };
 
-let cached: { user: AuthUser | null; localSecret: boolean } | null = null;
+const CACHE_TTL_MS = 30_000;
+let cached: { user: AuthUser | null; localSecret: boolean; at: number } | null = null;
 
 export function useSession(): SessionState {
   const [state, setState] = useState<SessionState>({
@@ -29,15 +30,15 @@ export function useSession(): SessionState {
 
   useEffect(() => {
     let cancelled = false;
-    if (cached) return;
+    if (cached && Date.now() - cached.at < CACHE_TTL_MS) return;
     void (async () => {
       try {
         const response = await fetch("/api/auth/session", { cache: "no-store" });
         const payload = (await response.json()) as { user: AuthUser | null; localSecret?: boolean };
-        cached = { user: payload.user ?? null, localSecret: payload.localSecret ?? false };
+        cached = { user: payload.user ?? null, localSecret: payload.localSecret ?? false, at: Date.now() };
         if (!cancelled) setState({ user: cached.user, localSecret: cached.localSecret, loading: false });
       } catch {
-        cached = { user: null, localSecret: false };
+        cached = { user: null, localSecret: false, at: Date.now() };
         if (!cancelled) setState({ user: null, localSecret: false, loading: false });
       }
     })();
@@ -50,8 +51,17 @@ export function useSession(): SessionState {
 }
 
 /** Identificativo con cui separare i progetti locali: coincide con quello del server. */
+export function localDeviceId(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)atelier_device=([a-f0-9]{16,64})(?:;|$)/i);
+  return match?.[1] ?? null;
+}
+
 export function ownerOf(user: AuthUser | null): string {
-  return user ? `${user.provider}:${user.id}` : "local:ospite";
+  if (!user) return "local:ospite";
+  if (user.provider !== "local") return `${user.provider}:${user.id}`;
+  const device = localDeviceId();
+  return device ? `local:${device}` : "local:ospite";
 }
 
 export function useSignOut(): () => Promise<void> {

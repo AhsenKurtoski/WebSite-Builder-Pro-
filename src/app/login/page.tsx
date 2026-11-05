@@ -50,7 +50,7 @@ export default async function LoginPage({
             Il tuo spazio di lavoro, sul tuo computer.
           </h1>
           <p className="text-sm leading-relaxed text-ink-500">
-            I progetti, le versioni e le chiavi API vivono in questo browser. L&apos;accesso serve a separare i workspace e a
+            I progetti e le versioni vivono in questo browser. L&apos;accesso serve a separare i workspace e a
             ritrovarli: non è una gabbia, è un&apos;etichetta.
           </p>
           <ul className="grid gap-2 text-[13px] text-ink-300">
@@ -58,7 +58,7 @@ export default async function LoginPage({
               <span className="text-accent-400">◆</span> Nessun upload dei tuoi contenuti
             </li>
             <li className="flex gap-2">
-              <span className="text-accent-400">◆</span> Chiavi AI cifrate nel browser, usate una richiesta alla volta
+              <span className="text-accent-400">◆</span> Chiavi AI configurate sul server, mai nel browser
             </li>
             <li className="flex gap-2">
               <span className="text-accent-400">◆</span> Export statico e file di progetto sempre scaricabili

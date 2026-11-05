@@ -22,7 +22,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const user = localUser(parsed.data.name);
     return Response.json(
-      { user, mode: "local", note: "Sessione locale: progetti e chiavi restano in questo browser." },
+      { user, mode: "local", note: "Sessione locale: i progetti restano in questo browser." },
       { headers: { "set-cookie": sessionCookie(user, isSecureRequest(request)) } },
     );
   } catch (error) {

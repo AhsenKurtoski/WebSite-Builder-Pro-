@@ -21,10 +21,10 @@ export type BlockContext = {
 export const MOTION_ATTR = "data-motion";
 
 /** Wrapper di sezione: applica larghezza, sfondo, spaziatura, motion e ancoraggio. */
-export function section(block: Block, children: Child[], extraClass?: string, extraAttrs?: Record<string, AttrValue>): El {
+export function section(block: Block, children: Child[], extraClass?: string, extraAttrs?: Record<string, AttrValue>, tag = "section"): El {
   const style = block.style;
   return el(
-    "section",
+    tag,
     {
       class: cls(
         "atl-section",
@@ -186,7 +186,7 @@ export function formatDate(iso: string): string {
 /** Contenuto legale generato: nessun blocco vuoto, sempre testo utile. */
 export function legalBody(site: Site, kind: "privacy" | "cookie" | "terms"): El[] {
   const name = site.businessName;
-  const email = site.brand.contact.email || "info@example.com";
+  const email = site.brand.contact.email.trim();
   const updated = formatDate(site.updatedAt);
 
   if (kind === "cookie") {
@@ -203,10 +203,10 @@ export function legalBody(site: Site, kind: "privacy" | "cookie" | "terms"): El[
       ),
       heading(3, "Gestione delle preferenze"),
       paragraph(
-        `Puoi modificare o revocare il consenso in qualsiasi momento dal pannello delle preferenze presente nel sito, oppure scrivendo a ${email}.`,
+        `Puoi modificare o revocare il consenso in qualsiasi momento dal link "Preferenze cookie" nel footer${email ? `, oppure scrivendo a ${email}` : ""}.`,
       ),
       heading(3, "Titolare del trattamento"),
-      paragraph(`${name}${site.brand.contact.vat ? `, P.IVA ${site.brand.contact.vat}` : ""}. Contatti: ${email}.`),
+      paragraph(`${name}${site.brand.contact.vat ? `, P.IVA ${site.brand.contact.vat}` : ""}.${email ? ` Contatti: ${email}.` : " I recapiti sono indicati nella pagina Contatti."}`),
     ];
   }
 
@@ -224,7 +224,7 @@ export function legalBody(site: Site, kind: "privacy" | "cookie" | "terms"): El[
       ),
       heading(3, "Responsabilità"),
       paragraph(
-        `${name} cura i contenuti pubblicati ma non garantisce l'assenza di errori materiali; segnalazioni possono essere inviate a ${email}.`,
+        `${name} cura i contenuti pubblicati ma non garantisce l'assenza di errori materiali; segnalazioni possono essere inviate ${email ? `a ${email}` : "tramite la pagina Contatti"}.`,
       ),
     ];
   }
@@ -236,7 +236,7 @@ export function legalBody(site: Site, kind: "privacy" | "cookie" | "terms"): El[
     paragraph(
       `${name}${site.brand.contact.vat ? `, P.IVA ${site.brand.contact.vat}` : ""}, con sede in ${
         site.brand.contact.address || site.brand.contact.city || "Italia"
-      }. Contatto per la privacy: ${email}.`,
+      }.${email ? ` Contatto per la privacy: ${email}.` : " I recapiti sono indicati nella pagina Contatti."}`,
     ),
     heading(3, "Finalità e base giuridica"),
     paragraph(

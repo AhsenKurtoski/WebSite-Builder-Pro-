@@ -1,8 +1,8 @@
 import { BriefSchema, SECTORS, STYLE_PRESET_NAMES } from "@/lib/schema/site";
 import { compileSite, type CompileEvent } from "@/lib/ai/compile";
 import { QuotaLedger } from "@/lib/ai/quota-ledger";
-import type { ProviderKeys } from "@/lib/ai/providers";
 import { ApiError, errorResponse } from "@/lib/util/api-error";
+import { assertSameOrigin, checkRateLimit, readJsonBody } from "@/lib/util/api-guard";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
  * Compilazione di un sito.
  *
  * Risponde in streaming: l'editor mostra gli stadi mentre accadono, e riceve il
- * sito completo nell'evento finale. Le chiavi arrivano dal client (cifrate a
- * riposo nel browser) e vengono usate solo all'interno di questa richiesta.
+ * sito completo nell'evento finale. Le chiavi AI sono nell'ambiente del server:
+ * il browser non le invia né le riceve mai.
  */
 
 const RequestSchema = z.object({
@@ -30,7 +30,6 @@ const RequestSchema = z.object({
       address: z.string().default(""),
     })
     .default({ email: "", phone: "", city: "", address: "" }),
-  keys: z.record(z.string(), z.string()).default({}),
   knownSignatures: z.array(z.string()).default([]),
   variation: z.number().default(0),
   maxAiPages: z.number().min(0).max(12).default(4),
@@ -45,10 +44,17 @@ function ledger(): QuotaLedger {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  try {
+    assertSameOrigin(request);
+    checkRateLimit(request, "ai-compile", 8, 60_000);
+  } catch (error) {
+    return errorResponse(error, { route: "ai/compile" });
+  }
+
   let payload: z.infer<typeof RequestSchema>;
   let brief: ReturnType<typeof BriefSchema.parse>;
   try {
-    payload = RequestSchema.parse(await request.json());
+    payload = RequestSchema.parse(await readJsonBody(request));
     brief = BriefSchema.parse({
       prompt: payload.prompt,
       businessName: payload.businessName,
@@ -73,13 +79,19 @@ export async function POST(request: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const send = (event: CompileEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        if (request.signal.aborted) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        } catch {
+          /* lo stream e gia stato chiuso dal client */
+        }
       };
 
       try {
+        if (request.signal.aborted) return;
         await compileSite({
           brief,
-          keys: payload.keys as ProviderKeys,
+          signal: request.signal,
           ledger: ledger(),
           knownSignatures: payload.knownSignatures,
           variation: payload.variation,

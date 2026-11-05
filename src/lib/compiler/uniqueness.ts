@@ -13,7 +13,7 @@ export function structuralSignature(site: Site): string {
   const structure = site.pages
     .map((page) =>
       page.blocks
-        .map((block) => `${block.type}/${block.variant}:${block.style.width}:${block.style.background}:${block.motion}`)
+        .map((block) => `${block.type}/${block.variant}:${block.style.width}:${block.style.background}:${block.style.align}:${block.style.space}:${block.style.hideOnMobile ? 1 : 0}:${block.style.anchor ?? ""}:${block.motion}`)
         .join("|"),
     )
     .join("||");
@@ -59,5 +59,7 @@ export function findUniqueVariation<T>(
     if (!collided) return last;
   }
 
-  return last as { candidate: T; signature: string; variation: number; collided: boolean };
+  if (last) return last;
+  const candidate = build(0);
+  return { candidate, signature: signatureOf(candidate), variation: 0, collided: false };
 }

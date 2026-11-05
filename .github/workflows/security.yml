@@ -28,5 +28,10 @@ jobs:
       - name: Vulnerabilità gravi in produzione
         run: npm audit --omit=dev --audit-level=high
 
+
+      - name: Ricerca di segreti committati
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Dipendenze non aggiornate (informativo)
         run: npm outdated || true

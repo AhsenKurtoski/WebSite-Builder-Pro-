@@ -88,7 +88,7 @@ export function sessionOwner(user: AuthUser): string {
   return userKey(user);
 }
 
-/** Sessione locale (senza account): le chiavi e i progetti restano nel browser. */
+/** Sessione locale (senza account): i progetti restano nel browser e le chiavi sul server. */
 export function localUser(name: string): AuthUser {
   const clean = name.trim() || "Ospite";
   return {

@@ -27,6 +27,11 @@ describe("riconoscimento del settore", () => {
     ["Negozio online di ceramiche artigianali", "ecommerce"],
     ["Agenzia di comunicazione a Padova", "agency"],
     ["Falegnameria artigiana a Verona", "artisan"],
+    // Un sopralluogo in un appartamento da ristrutturare non fa di un architetto
+    // un'agenzia immobiliare: lo studio deve restare tale.
+    ["Studio di architettura a Bologna specializzato in ristrutturazioni di appartamenti storici", "architecture"],
+    ["Interior design per uffici a Milano", "architecture"],
+    ["Impresa di ristrutturazioni a Monza", "artisan"],
     ["Agenzia immobiliare a Bari", "realestate"],
     ["Scuola di inglese a Bologna", "education"],
     ["Consulenza aziendale generica", "generic"],
@@ -70,7 +75,9 @@ describe("composer deterministico (nessuna rete, nessuna chiave)", () => {
     const cookie = pizza.pages.find((page) => page.path === "/cookie")!;
     expect(privacy.kind).toBe("legal");
     expect(cookie.kind).toBe("legal");
-    expect(pizza.brand.contact.email).toContain("@");
+    const withEmail = site("Pizzeria napoletana a Milano", { contacts: { email: "info@pizzeria.it" } });
+    expect(withEmail.brand.contact.email).toContain("@");
+    expect(pizza.brand.contact.email).toBe("");
   });
 
   it("è riproducibile: stesso brief, stesso sito", () => {
@@ -142,6 +149,7 @@ describe("voce del settore", () => {
     // che li usi LUI, non che spariscano da tutti.
     { prompt: "Falegnameria artigiana a Verona", must: /sopralluogo|preventivo/i, mustNot: /pazient|ricovero|utente\/mese|campagn/i },
     { prompt: "Agenzia immobiliare a Bari", must: /valutazione|immobil/i, mustNot: /cantiere|pazient|allenament/i },
+    { prompt: "Studio di architettura a Bologna specializzato in ristrutturazioni", must: /sopralluogo|progett/i, mustNot: /pazient|allenament|annunc/i },
     { prompt: "Scuola di inglese a Bologna", must: /modul|lezion/i, mustNot: /sopralluogo|cantiere|preventiv/i },
     { prompt: "Consulenza aziendale generica", must: /preventivo/i, mustNot: /lorem|ipsum|pazient|menù/i },
   ];

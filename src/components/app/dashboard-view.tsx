@@ -215,6 +215,7 @@ export function DashboardView() {
                         type="button"
                         className="btn btn-ghost text-danger-500"
                         onClick={async () => {
+                          if (!window.confirm(`Eliminare "${record.name}"? Il progetto e le sue versioni verranno rimossi da questo browser.`)) return;
                           await deleteSite(record.id);
                           await refresh();
                         }}

@@ -13,7 +13,7 @@ type CtaProps = {
 
 const DEFAULT_CTA: CtaProps = {
   title: "Descrivi l'attività: il primo sito è pronto in un minuto.",
-  text: "Entra con GitHub o Google, oppure resta in locale. I progetti vivono nel tuo browser e le chiavi API non vengono conservate.",
+  text: "Entra con GitHub o Google, oppure resta in locale. I progetti vivono nel tuo browser e le chiavi AI restano sul server, mai nel browser.",
   href: "/login?next=/nuovo",
   label: "Inizia gratis",
   secondary: { href: "/login?next=/dashboard", label: "Ho già un accesso" },

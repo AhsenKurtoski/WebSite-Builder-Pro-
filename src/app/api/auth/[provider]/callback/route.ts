@@ -25,12 +25,12 @@ export async function GET(
     const stateCookie = verifyValue(cookies[OAUTH_STATE_COOKIE]);
 
     if (query.get("error")) {
-      const query2 = new URLSearchParams({
+      const errorQuery = new URLSearchParams({
         error: "access-denied",
         provider,
         detail: query.get("error_description") ?? query.get("error") ?? "Accesso annullato",
       });
-      return redirectWithCookies(`/login?${query2.toString()}`, [clearCookie(OAUTH_STATE_COOKIE)]);
+      return redirectWithCookies(`/login?${errorQuery.toString()}`, [clearCookie(OAUTH_STATE_COOKIE)]);
     }
 
     const [expectedState, nextFromState] = (stateCookie ?? "").split("|");
@@ -65,7 +65,14 @@ export async function GET(
     ]);
   } catch (error) {
     if (error instanceof ApiError) {
-      const query = new URLSearchParams({ error: error.code.toLowerCase(), provider, detail: error.message });
+      // Codici interni → chiavi leggibili dalla pagina di accesso.
+      const reason =
+        error.code === "NOT_CONFIGURED"
+          ? "not-configured"
+          : error.code === "UPSTREAM_ERROR"
+            ? "provider-unavailable"
+            : error.code.toLowerCase().replace(/_/g, "-");
+      const query = new URLSearchParams({ error: reason, provider, detail: error.message });
       if (error.hint) query.set("hint", error.hint);
       return redirectWithCookies(`/login?${query.toString()}`, [clearCookie(OAUTH_STATE_COOKIE)]);
     }

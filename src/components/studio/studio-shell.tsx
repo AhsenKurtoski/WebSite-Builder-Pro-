@@ -8,11 +8,11 @@ import { useStudio, variantOptions } from "@/lib/store/site-store";
 import { blockCatalog, findDefinition } from "@/lib/schema/registry";
 import { PRESET_LABELS, FONT_PAIRINGS, type StylePreset } from "@/lib/design/tokens";
 import { STYLE_PRESET_NAMES } from "@/lib/schema/site";
+import { SECTOR_LABELS } from "@/lib/compiler/sector-profiles";
 import { renderSite, renderSingleFileHtml } from "@/lib/export/render-site";
 import { archiveSummary, buildSiteZip, downloadBlob, downloadText } from "@/lib/export/build-zip";
 import { runGates, type GateReport } from "@/lib/quality/gates";
 import { loadSite, saveSite } from "@/lib/storage/site-repo";
-import { loadSessionKeys, type StoredKeys } from "@/lib/storage/secure-keys";
 import { streamCompile } from "@/lib/ai/client";
 import type { CompileStageId } from "@/lib/ai/compile";
 import { readableBytes } from "@/lib/util/bytes";
@@ -47,6 +47,7 @@ export function StudioShell({ siteId }: { siteId: string }) {
   const [aiRunning, setAiRunning] = useState(false);
   const [aiStages, setAiStages] = useState<{ id: CompileStageId; status: string; detail?: string }[]>([]);
   const [aiLog, setAiLog] = useState<string[]>([]);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   // Caricamento del progetto dal database locale.
   useEffect(() => {
@@ -77,15 +78,27 @@ export function StudioShell({ siteId }: { siteId: string }) {
   useEffect(() => {
     if (!site || !studio.dirty) return;
     const timer = setTimeout(async () => {
+      setSaveState("saving");
       try {
         await saveSite(site, { owner });
         studio.markSaved();
+        setSaveState("saved");
       } catch {
-        /* il salvataggio non deve interrompere il lavoro */
+        setSaveState("error");
       }
     }, 900);
     return () => clearTimeout(timer);
   }, [site, studio, owner]);
+
+  useEffect(() => {
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      if (!studio.dirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [studio.dirty]);
 
   // Scorciatoie da tastiera: undo/redo e deselezione.
   useEffect(() => {
@@ -138,7 +151,6 @@ export function StudioShell({ siteId }: { siteId: string }) {
     setAiStages([]);
     setAiLog([]);
 
-    const keys: StoredKeys = loadSessionKeys();
     const briefText =
       kind === "restyle"
         ? `${site.meta.brief || site.brand.tagline}. Cambia direzione creativa mantenendo gli stessi contenuti e la stessa offerta.`
@@ -163,7 +175,6 @@ export function StudioShell({ siteId }: { siteId: string }) {
             city: site.brand.contact.city,
             address: site.brand.contact.address,
           },
-          keys,
           variation: kind === "restyle" ? 1 : 0,
           knownSignatures: [],
         },
@@ -219,8 +230,9 @@ export function StudioShell({ siteId }: { siteId: string }) {
           <div className="grid min-w-0">
             <span className="truncate text-sm font-semibold">{site.businessName}</span>
             <span className="truncate text-[10px] text-ink-600">
-              {site.sector} · {PRESET_LABELS[site.theme.preset]}
+              {SECTOR_LABELS[site.sector]} · {PRESET_LABELS[site.theme.preset]}
               <span className="hidden sm:inline"> · {site.pages.length} pagine · hash {site.meta.structuralHash}</span>
+              <span className={saveState === "error" ? "text-danger-500" : "text-ink-600"}>{saveState === "saving" ? "Salvataggio..." : saveState === "saved" ? "Salvato" : saveState === "error" ? "Salvataggio non riuscito" : ""}</span>
             </span>
           </div>
         </div>

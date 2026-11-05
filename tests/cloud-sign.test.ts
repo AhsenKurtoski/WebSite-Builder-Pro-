@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SIGNATURE_TOLERANCE_MS, SIGNED_BODY_MAX_CHARS, signedBody, verifySignature } from "@/lib/cloud/sign";
 
 /**
@@ -39,6 +39,7 @@ describe("costruzione della busta", () => {
     const b = JSON.parse(signedBody({ op: "list" }, SECRET)) as { sig: string };
     expect(a.sig).toBe(b.sig);
     expect(verifySignature(signedBody({ op: "list" }, SECRET), SECRET).ok).toBe(true);
+    vi.useRealTimers();
   });
 
   it("un corpo oltre il tetto non viene nemmeno costruito", () => {

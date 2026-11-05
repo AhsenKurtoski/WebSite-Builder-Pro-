@@ -20,16 +20,41 @@ function serializeAttrs(attrs: Record<string, string | number | boolean | null |
   const entries = Object.entries(attrs).filter(([, value]) => value !== null && value !== undefined && value !== false);
   if (entries.length === 0) return "";
   return entries
-    .map(([name, value]) => (value === true ? ` ${name}=""` : ` ${name}="${escapeAttr(String(value))}"`))
+    .map(([name, value]) => {
+      if (value === true) return ` ${name}=""`;
+      const clean = safeAttr(name, String(value));
+      if (!clean && (name === "src" || name === "href")) return "";
+      return ` ${name}="${escapeAttr(clean)}"`;
+    })
     .join("");
 }
 
 export type HtmlOptions = {
-  /** Indenta l'output per leggibilità (l'HTML resta identico, cambia solo la formattazione). */
+  /** Indenta l'output per leggibilit� (l'HTML resta identico, cambia solo la formattazione). */
   pretty?: boolean;
   /** Livello di indentazione iniziale. */
   depth?: number;
+  /** Lingua del documento; default italiano. */
+  lang?: string;
 };
+
+function isSafeUrl(value: string, kind: "link" | "resource"): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  if (trimmed.startsWith("#") || trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) return true;
+  if (kind === "resource" && /^data:image\//i.test(trimmed)) return true;
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return true;
+  // Un valore senza schema e un percorso relativo (es. "contatti/", "?q=1").
+  return !/^[a-z][a-z0-9+.-]*:/i.test(trimmed);
+}
+
+function safeAttr(name: string, value: string): string {
+  if (name === "href" || name === "action" || name === "formaction") {
+    return isSafeUrl(value, "link") ? value : "#";
+  }
+  if (name === "src") return isSafeUrl(value, "resource") ? value : "";
+  return value;
+}
 
 /**
  * Serializza un albero in HTML. Deterministico: stesso albero, stessa stringa,
@@ -82,5 +107,6 @@ export function renderDocument(head: Child[], body: Child[], options: HtmlOption
   const pretty = options.pretty ?? true;
   const headHtml = head.map((node) => renderHtml(node, { pretty, depth: 1 })).join("\n");
   const bodyHtml = body.map((node) => renderHtml(node, { pretty, depth: 1 })).join("\n");
-  return `<!doctype html>\n<html lang="it">\n<head>\n${headHtml}\n</head>\n<body>\n${bodyHtml}\n</body>\n</html>\n`;
+  const lang = (options.lang ?? "it").replace(/[^a-zA-Z0-9-]/g, "") || "it";
+  return `<!doctype html>\n<html lang="${lang}">\n<head>\n${headHtml}\n</head>\n<body>\n${bodyHtml}\n</body>\n</html>\n`;
 }

@@ -12,7 +12,41 @@ export type ExportFile = {
   kind: "html" | "css" | "js" | "xml" | "txt" | "json" | "svg" | "toml";
 };
 
-export const DEFAULT_DOMAIN = "https://example.com";
+/** Normalizza il dominio del progetto. Vuoto significa "non ancora impostato". */
+function normalizedDomain(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const parsed = new URL(withScheme);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
+}
+
+/** Escape per il contenuto di <script type="application/ld+json">. */
+function escapeJsonLd(json: string): string {
+  return json
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+/** Settori con un indirizzo dove si ricevono i clienti (schema.org → LocalBusiness). */
+const LOCAL_BUSINESS_SECTORS: readonly Site["sector"][] = [
+  "restaurant",
+  "medical",
+  "legal",
+  "architecture",
+  "artisan",
+  "realestate",
+  "education",
+  "fitness",
+];
 
 /** Dove finisce una pagina dentro l'archivio esportato. */
 export function pageFileName(page: Page): string {
@@ -38,17 +72,19 @@ export function relativizeLinks(html: string, depth: number): string {
 }
 
 function baseUrl(site: Site): string {
-  return (site.meta.domain || DEFAULT_DOMAIN).replace(/\/+$/, "");
+  return normalizedDomain(site.meta.domain);
 }
 
 function jsonLd(site: Site, page: Page): string {
   const domain = baseUrl(site);
   const { contact } = site.brand;
   const organization: Record<string, unknown> = {
-    "@type": site.sector === "restaurant" || site.sector === "medical" || site.sector === "legal" ? "LocalBusiness" : "Organization",
-    "@id": `${domain}/#organizzazione`,
+    // Studio e bottega hanno una sede in cui si ricevono i clienti: per il
+    // vocabolario dei motori di ricerca sono attività locali, non organizzazioni.
+    "@type": LOCAL_BUSINESS_SECTORS.includes(site.sector) ? "LocalBusiness" : "Organization",
+    ...(domain ? { "@id": `${domain}/#organizzazione`, url: domain } : {}),
     name: site.businessName,
-    url: domain,
+
     description: site.pages[0]?.seo.description ?? site.brand.tagline,
   };
   if (contact.email) organization.email = contact.email;
@@ -67,12 +103,10 @@ function jsonLd(site: Site, page: Page): string {
     organization,
     {
       "@type": "WebPage",
-      "@id": `${domain}${page.path}#pagina`,
-      url: `${domain}${page.path}`,
       name: page.seo.title,
       description: page.seo.description,
-      isPartOf: { "@id": `${domain}/#organizzazione` },
       inLanguage: site.locale,
+      ...(domain ? { "@id": `${domain}${page.path}#pagina`, url: `${domain}${page.path}`, isPartOf: { "@id": `${domain}/#organizzazione` } } : {}),
     },
   ];
 
@@ -82,7 +116,7 @@ function jsonLd(site: Site, page: Page): string {
     if (items.length > 0) {
       graph.push({
         "@type": "FAQPage",
-        "@id": `${domain}${page.path}#faq`,
+        ...(domain ? { "@id": `${domain}${page.path}#faq` } : {}),
         mainEntity: items.map((item) => ({
           "@type": "Question",
           name: item.question,
@@ -92,12 +126,12 @@ function jsonLd(site: Site, page: Page): string {
     }
   }
 
-  return `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph })}</script>`;
+  return `<script type="application/ld+json">${escapeJsonLd(JSON.stringify({ "@context": "https://schema.org", "@graph": graph }))}</script>`;
 }
 
 function headNodes(site: Site, page: Page, resolved: ResolvedTheme, inline = false): Child[] {
   const domain = baseUrl(site);
-  const canonical = `${domain}${page.path}`;
+  const canonical = domain ? `${domain}${page.path}` : "";
   const title = page.seo.title || site.businessName;
   // In un file unico anche l'icona viaggia dentro il documento (data URI):
   // altrimenti il browser chiederebbe un /favicon.svg che non esiste.
@@ -111,14 +145,14 @@ function headNodes(site: Site, page: Page, resolved: ResolvedTheme, inline = fal
     el("title", null, title),
     el("meta", { name: "description", content: page.seo.description }),
     ...(page.seo.keywords.length > 0 ? [el("meta", { name: "keywords", content: page.seo.keywords.join(", ") })] : []),
-    el("link", { rel: "canonical", href: canonical }),
+    ...(canonical ? [el("link", { rel: "canonical", href: canonical })] : []),
     el("meta", { name: "robots", content: page.seo.noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large" }),
     el("meta", { property: "og:type", content: page.kind === "home" ? "website" : "article" }),
     el("meta", { property: "og:site_name", content: site.businessName }),
     el("meta", { property: "og:title", content: page.seo.ogTitle || title }),
     el("meta", { property: "og:description", content: page.seo.ogDescription || page.seo.description }),
-    el("meta", { property: "og:url", content: canonical }),
-    el("meta", { property: "og:image", content: `${domain}/og-image.svg` }),
+    ...(canonical ? [el("meta", { property: "og:url", content: canonical })] : []),
+    ...(domain ? [el("meta", { property: "og:image", content: `${domain}/og-image.svg` })] : []),
     el("meta", { property: "og:locale", content: site.locale.replace("-", "_") }),
     el("meta", { name: "twitter:card", content: "summary_large_image" }),
     el("meta", { name: "generator", content: "Atelier" }),
@@ -175,7 +209,7 @@ export function renderPageHtml(site: Site, page: Page, options: PageRenderOption
     body.push(el("script", null, PREVIEW_JS));
   }
 
-  const html = renderDocument(head, body, { pretty: !options.inline });
+  const html = renderDocument(head, body, { pretty: !options.inline, lang: site.locale });
   if (options.relativize) return relativizeLinks(html, depthOf(pageFileName(page)));
   return html;
 }
@@ -239,7 +273,7 @@ function renderArticleHtml(site: Site, collection: Collection, article: Article,
     el("script", { src: "/site.js", defer: true }, ""),
   ];
 
-  const html = renderDocument(headNodes(site, page, resolved), body, { pretty: true });
+  const html = renderDocument(headNodes(site, page, resolved), body, { pretty: true, lang: site.locale });
   return relativizeLinks(html, depthOf(pageFileName(page)));
 }
 
@@ -269,6 +303,7 @@ function ogImageSvg(site: Site, resolved: ResolvedTheme): string {
 
 function sitemapXml(site: Site): string {
   const domain = baseUrl(site);
+  if (!domain) return "";
   const urls = site.pages
     .filter((page) => !page.seo.noindex)
     .map(
@@ -283,7 +318,8 @@ function sitemapXml(site: Site): string {
 
 function robotsTxt(site: Site): string {
   const domain = baseUrl(site);
-  return `User-agent: *\nAllow: /\n\nSitemap: ${domain}/sitemap.xml\n`;
+  const sitemap = domain ? `\nSitemap: ${domain}/sitemap.xml\n` : "";
+  return `User-agent: *\nAllow: /${sitemap}`;
 }
 
 /** AEO: un riassunto leggibile dalle macchine, come indicato dalla pratica llms.txt. */
@@ -296,7 +332,7 @@ function llmsTxt(site: Site): string {
     `> ${site.brand.tagline || site.pages[0]?.seo.description || ""}`,
     "",
     "## Pagine principali",
-    ...site.pages.map((page) => `- [${page.title}](${domain}${page.path}): ${page.seo.description}`),
+    ...site.pages.map((page) => `- [${page.title}](${domain ? `${domain}${page.path}` : page.path}): ${page.seo.description}`),
     "",
     "## Contatti",
     contact.email ? `- Email: ${contact.email}` : null,
@@ -310,7 +346,7 @@ function llmsTxt(site: Site): string {
 }
 
 function readmeForExport(site: Site): string {
-  const domain = site.meta.domain || "https://tuo-dominio.it";
+  const domain = baseUrl(site);
   return `# ${site.businessName} — sito esportato da Atelier
 
 Questa cartella è un sito statico completo: HTML, CSS e un solo file JavaScript.
@@ -333,7 +369,7 @@ Si apre anche direttamente con doppio clic su \`index.html\`: i link interni son
 
 ## Prima di andare online
 
-1. **Dominio** — ora impostato a \`${domain}\`. Aggiornalo nel progetto per correggere canonical, sitemap e og:url.
+1. **Dominio** — ${domain ? `ora impostato a \`${domain}\`. Aggiornalo nel progetto per correggere canonical, sitemap e og:url.` : "non ancora impostato. Impostalo nel progetto per generare canonical, sitemap e og:url."}
 2. **Modulo di contatto** — in modalità email apre il programma di posta del visitatore (funziona sempre,
    senza servizi esterni). Per ricevere i messaggi in automatico collega un endpoint nel progetto.
 3. **Google Fonts** — i font sono caricati dal CDN di Google. Per una versione senza richieste esterne,
@@ -361,7 +397,7 @@ function vercelJson(): string {
       cleanUrls: true,
       trailingSlash: false,
       headers: [
-        { source: "/(.*)", headers: [{ key: "X-Content-Type-Options", value: "nosniff" }, { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" }] },
+        { source: "/(.*)", headers: [{ key: "X-Content-Type-Options", value: "nosniff" }, { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" }, { key: "X-Frame-Options", value: "SAMEORIGIN" }, { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }] },
         { source: "/(.*)\\.(css|js|svg|woff2)", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
       ],
     },
@@ -379,6 +415,8 @@ function netlifyToml(): string {
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
   for = "*.css"
@@ -391,6 +429,8 @@ function headersFile(): string {
   return `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 /*.css
   Cache-Control: public, max-age=31536000, immutable
@@ -444,7 +484,8 @@ export function renderSite(site: Site): ExportFile[] {
   files.push({ path: "site.js", contents: SITE_JS, kind: "js" });
   files.push({ path: "favicon.svg", contents: faviconSvg(site, resolved), kind: "svg" });
   files.push({ path: "og-image.svg", contents: ogImageSvg(site, resolved), kind: "svg" });
-  files.push({ path: "sitemap.xml", contents: sitemapXml(site), kind: "xml" });
+  const sitemap = sitemapXml(site);
+  if (sitemap) files.push({ path: "sitemap.xml", contents: sitemap, kind: "xml" });
   files.push({ path: "robots.txt", contents: robotsTxt(site), kind: "txt" });
   files.push({ path: "llms.txt", contents: llmsTxt(site), kind: "txt" });
   files.push({ path: "vercel.json", contents: vercelJson(), kind: "json" });

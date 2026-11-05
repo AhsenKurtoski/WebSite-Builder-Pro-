@@ -2,7 +2,7 @@
 
 import type { CompileEvent } from "@/lib/ai/compile";
 import type { Brief, Site } from "@/lib/schema/site";
-import type { ProviderKeys } from "@/lib/ai/providers";
+import type { ProviderReport } from "@/lib/ai/providers";
 
 /**
  * Consumo dello streaming di compilazione.
@@ -18,7 +18,6 @@ export type CompileRequest = {
   stylePreset?: Brief["stylePreset"];
   tone?: string;
   contacts?: { email?: string; phone?: string; city?: string; address?: string };
-  keys?: ProviderKeys;
   knownSignatures?: string[];
   variation?: number;
   maxAiPages?: number;
@@ -74,22 +73,19 @@ export async function streamCompile(
 export async function fetchProviderHealth(): Promise<{
   offlineReady: boolean;
   offlineNote: string;
-  providers: { id: string; label: string; ready: boolean; missing?: string; note: string; signupUrl: string }[];
+  providers: ProviderReport[];
 }> {
   const response = await fetch("/api/providers/health", { cache: "no-store" });
   if (!response.ok) throw new Error("Diagnostica non disponibile");
   return response.json();
 }
 
-export async function testProviderKey(input: {
-  provider: string;
-  apiKey: string;
-  accountId?: string;
-}): Promise<{ ok: boolean; message: string; hint?: string; ms?: number }> {
+/** Verifica la chiave del server per un provider: il browser passa solo l'identificativo. */
+export async function testProvider(provider: string): Promise<{ ok: boolean; message: string; hint?: string; ms?: number }> {
   const response = await fetch("/api/providers/test", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({ provider }),
   });
   const payload = (await response.json()) as {
     ok?: boolean;

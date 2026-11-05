@@ -1,5 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { applyBlueprint, normalizeFontPairing, normalizePreset, withStageDeadline } from "@/lib/ai/compile";
+import {
+  applyBlueprint,
+  describeStageFailure,
+  normalizeFontPairing,
+  normalizePreset,
+  attemptSliceMs,
+  structuredProviderOptions,
+  withFormatRetry,
+  withStageDeadline,
+} from "@/lib/ai/compile";
 import { composeSite } from "@/lib/compiler/offline-composer";
 import { BriefSchema } from "@/lib/schema/site";
 
@@ -53,6 +62,81 @@ describe("scadenza degli stadi AI", () => {
     const started = Date.now();
     await expect(withStageDeadline(0, () => new Promise<string>(() => {}))).rejects.toThrow();
     expect(Date.now() - started).toBeLessThan(1500);
+  });
+});
+
+describe("output strutturato dei provider", () => {
+  it("Groq chiede JSON semplice e ragionamento minimo", () => {
+    expect(structuredProviderOptions("groq")).toEqual({
+      groq: { structuredOutputs: false, reasoningEffort: "low" },
+    });
+  });
+
+  it("Cerebras resta in json_schema, non stretto e con ragionamento minimo", () => {
+    expect(structuredProviderOptions("cerebras")).toEqual({
+      cerebras: { strictJsonSchema: false, reasoningEffort: "low" },
+    });
+  });
+
+  it("gli altri provider restano senza opzioni aggiuntive", () => {
+    expect(structuredProviderOptions("gemini")).toBeUndefined();
+    expect(structuredProviderOptions("gemini-fallback")).toBeUndefined();
+    expect(structuredProviderOptions("openrouter")).toBeUndefined();
+    expect(structuredProviderOptions("cloudflare")).toBeUndefined();
+  });
+});
+
+describe("budget di uno stadio AI", () => {
+  it("un tentativo riceve il tempo che resta allo stadio, non un budget nuovo", () => {
+    const now = 1_000_000;
+    expect(attemptSliceMs(now + 25_000, now, 25_000)).toBe(25_000);
+    expect(attemptSliceMs(now + 3_000, now, 25_000)).toBe(4_000);
+    expect(attemptSliceMs(now - 5_000, now, 25_000)).toBe(4_000);
+  });
+
+  it("non supera mai il tetto dello stadio", () => {
+    expect(attemptSliceMs(1_000_000 + 90_000, 1_000_000, 20_000)).toBe(20_000);
+  });
+});
+
+describe("ritentativo sugli errori di formato", () => {
+  it("un JSON non conforme viene riprovato una volta e poi passa", async () => {
+    let calls = 0;
+    const value = await withFormatRetry(async () => {
+      calls += 1;
+      if (calls === 1) {
+        const error = new Error("No object generated: could not parse the response.");
+        error.name = "AI_NoObjectGeneratedError";
+        throw error;
+      }
+      return "ok";
+    });
+    expect(value).toBe("ok");
+    expect(calls).toBe(2);
+  });
+
+  it("gli altri errori risalgono subito: il ritentativo non nasconde un guasto", async () => {
+    let calls = 0;
+    await expect(
+      withFormatRetry(async () => {
+        calls += 1;
+        throw new Error("429 Too Many Requests");
+      }),
+    ).rejects.toThrow("429");
+    expect(calls).toBe(1);
+  });
+});
+
+describe("messaggi di errore leggibili", () => {
+  it("un aborto non arriva all'utente come testo interno", () => {
+    expect(describeStageFailure("This operation was aborted")).toBe("Nessun provider ha risposto entro il tempo previsto");
+    expect(describeStageFailure("Stadio AI oltre il tempo massimo (25000 ms)")).toContain("Nessun provider");
+  });
+
+  it("traduce i casi noti e lascia passare gli altri", () => {
+    expect(describeStageFailure("Tempo di compilazione esaurito per gli stadi AI")).toBe("Tempo degli stadi AI esaurito");
+    expect(describeStageFailure("Nessun provider configurato")).toBe("Nessuna chiave AI configurata sul server");
+    expect(describeStageFailure("429 Too Many Requests")).toBe("429 Too Many Requests");
   });
 });
 

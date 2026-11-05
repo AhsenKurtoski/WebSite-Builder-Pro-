@@ -97,7 +97,7 @@ Streaming SSE con eventi tipizzati: `stage`, `partial`, `patch`, `quota`, `repai
 - Cooldown per provider su 429/5xx/timeout con rispetto di `Retry-After`.
 - Ledger quote in Dexie (finestre RPM/RPD/TPM/TPD) + HUD con stato e prossimo reset.
 - Prompt compatti: mai l'intero sito nel contesto (cap 8k su Cerebras).
-- Chiavi: cifrate AES-GCM in IndexedDB, usate solo dentro `app/api/ai/*`, mai nel bundle.
+- Chiavi AI: solo variabili d'ambiente del server (`GEMINI_API_KEY` predefinita, `GEMINI_API_KEY_FALLBACK` di riserva, più gli altri provider opzionali). Usate solo dentro `app/api/ai/*` e `app/api/providers/*`, mai nel bundle né nel browser; nessuna chiave viene mai salvata nel browser.
 
 ---
 

@@ -13,6 +13,8 @@ export const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 /** Nome usato in titoli, dati strutturati e immagine di anteprima social. */
 export const SITE_NAME = "Atelier";
+export const STUDIO_NAME = "Ahsen Studio";
+export const AUTHOR_NAME = "Ahsen Kurtoski";
 
 /** Descrizione breve riusata da metadata, Open Graph e dati strutturati. */
 export const SITE_TAGLINE =

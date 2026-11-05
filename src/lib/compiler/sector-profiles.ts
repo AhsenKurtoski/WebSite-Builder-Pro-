@@ -816,6 +816,121 @@ export const SECTOR_PROFILES: Record<Sector, SectorProfile> = {
     navLabels: { services: "Lavori", about: "Chi siamo" },
   },
 
+  architecture: {
+    ...GENERIC,
+    label: "studio di architettura",
+    keywords: [
+      "architetto",
+      "architettura",
+      "studio di architettura",
+      "progettazione",
+      "direzione lavori",
+      "interior design",
+      "design d'interni",
+      "arredamento",
+      "pratiche edilizie",
+      "rendering",
+    ],
+    preset: "minimal",
+    paletteHarmony: "analogous",
+    primaryL: 0.42,
+    heading: "Progetti che partono da come si vive lo spazio",
+    tagline: "Progettazione, pratiche e direzione lavori con un referente unico.",
+    intro:
+      "Ogni incarico comincia da un sopralluogo e da qualche domanda scomoda: come usi gli spazi oggi, cosa non funziona, quanto vuoi spendere. Da lì arrivano piante, materiali e un preventivo per fasi.",
+    voice: {
+      ctaLabel: "Prenota un sopralluogo",
+      ctaTitle: "Raccontaci lo spazio che hai in mente",
+      ctaText:
+        "Fissiamo un sopralluogo: misuriamo, verifichiamo i vincoli e ti diciamo cosa è realistico fare e con quale budget.{area}",
+      areaClause: "Progettiamo a {city} e in tutta Italia.",
+      pricingNote:
+        "Gli importi indicano il punto di partenza: onorario e lavori restano separati e vengono confermati dopo il rilievo.",
+      aboutMethod:
+        "Prima di disegnare misuriamo: il progetto nasce da piante reali, vincoli dichiarati e un budget condiviso. Le decisioni si prendono insieme, con tavole comprensibili anche a chi non è del mestiere.",
+      aboutTeam:
+        "Chi firma il progetto è chi segue il cantiere: nessun passaggio di consegna tra reparti, nessuna decisione che si perde per strada.",
+      bioTemplate: "{role}: segue il progetto dalla prima pianta alla consegna delle chiavi.",
+      statsTitle: "Il lavoro in numeri",
+      servicesTitle: "Dalla prima idea al cantiere",
+      servicesIntro: "Progettazione, pratiche, direzione lavori e interni: ogni fase ha documenti e tempi definiti.",
+      servicesCtaTitle: "Hai uno spazio da ripensare?",
+      servicesCtaText:
+        "Mandaci pianta e foto: ti diciamo quali vincoli ci sono e cosa si può fare già prima del sopralluogo.{area}",
+      contactTitle: "Prenota un sopralluogo",
+      contactNote:
+        "Il primo incontro dura circa un'ora sul posto: servono la pianta, se c'è, e un'idea di budget. Senza impegno.",
+    },
+    services: [
+      { icon: "sparkles", title: "Progettazione", text: "Concept, distribuzione degli spazi e scelta dei materiali." },
+      { icon: "tool", title: "Ristrutturazione", text: "Interventi completi, seguiti dal progetto al collaudo." },
+      { icon: "heart", title: "Interior design", text: "Arredi, luci e finiture coerenti con l'uso reale degli spazi." },
+      { icon: "activity", title: "Direzione lavori", text: "Cantiere coordinato, con tempi e costi sotto controllo." },
+      { icon: "scale", title: "Pratiche edilizie", text: "CILA, SCIA e rapporti con gli uffici comunali." },
+      { icon: "briefcase", title: "Consulenza preliminare", text: "Fattibilità, vincoli e budget prima di iniziare." },
+    ],
+    features: [
+      { icon: "clock", title: "Fasi definite", text: "Sai cosa arriva e quando, a ogni passaggio." },
+      { icon: "scale", title: "Costi trasparenti", text: "Onorario e lavori separati, senza voci nascoste." },
+      { icon: "users", title: "Un solo referente", text: "Parli sempre con chi disegna il progetto." },
+    ],
+    process: [
+      { title: "Sopralluogo", text: "Rilievo, vincoli e aspettative, senza impegno." },
+      { title: "Concept", text: "Distribuzione, materiali e preventivo di massima." },
+      { title: "Progetto esecutivo", text: "Tavole, capitolato e pratica edilizia." },
+      { title: "Direzione lavori", text: "Cantiere seguito con visite programmate." },
+      { title: "Consegna", text: "Verifica finale, documenti e cartella del fabbricato." },
+    ],
+    faq: [
+      {
+        question: "Quanto costa un progetto?",
+        answer:
+          "Dipende da metri quadri e complessità: dopo il sopralluogo arriva un preventivo per fasi, con onorario e lavori indicati separatamente.",
+      },
+      {
+        question: "Seguite anche il cantiere?",
+        answer:
+          "Sì: la direzione lavori fa parte dell'incarico, con visite programmate e verbali scritti dopo ogni passaggio critico.",
+      },
+      {
+        question: "Vi occupate delle pratiche comunali?",
+        answer:
+          "Sì, CILA e SCIA sono incluse nel progetto esecutivo: non devi coordinare tu tecnici e uffici.",
+      },
+      {
+        question: "Lavorate fuori città?",
+        answer:
+          "Seguiamo progetti in tutta Italia; sui cantieri lontani concentriamo le visite e usiamo video-sopralluoghi per le verifiche rapide.",
+      },
+    ],
+    testimonials: [
+      { quote: "Hanno ridisegnato la distribuzione senza perdere un metro di casa: ora ogni stanza ha il suo senso.", author: "Chiara B.", role: "Cliente privato" },
+      { quote: "Tempi del cantiere rispettati e nessuna sorpresa in fattura rispetto al preventivo per fasi.", author: "Nicola P.", role: "Cliente privato" },
+      { quote: "Un referente solo per progetto ed esecuzione: abbiamo smesso di fare da tramite fra i tecnici.", author: "Studio Marchi", role: "Cliente aziendale" },
+    ],
+    stats: [
+      { value: "180", label: "Progetti consegnati" },
+      { value: "18 anni", label: "Di attività" },
+      { value: "4,9/5", label: "Valutazione dei clienti" },
+    ],
+    plans: [
+      { name: "Consulenza preliminare", price: "da 350 €", period: "", description: "Fattibilità e budget prima di decidere.", features: ["Sopralluogo", "Verifica dei vincoli", "Stima dei costi"] },
+      { name: "Progetto completo", price: "da 2.400 €", period: "", description: "Dal concept alla pratica edilizia.", features: ["Concept e tavole", "Capitolato", "Pratica CILA o SCIA"], featured: true },
+      { name: "Progetto e direzione lavori", price: "su misura", period: "", description: "Incarico esteso al cantiere e alla consegna.", features: ["Visite programmate", "Coordinamento delle imprese", "Verifica finale"] },
+    ],
+    teamRoles: ["Architetto titolare", "Architetto di progetto", "Interior designer"],
+    galleryCaptions: ["Schizzo di studio", "Pianta del progetto", "Render degli interni", "Cantiere in corso", "Interno finito", "Dettaglio costruttivo"],
+    pages: [
+      { path: "/progetti", title: "Progetti", kind: "page" },
+      { path: "/studio", title: "Studio", kind: "page" },
+      { path: "/contatti", title: "Contatti", kind: "page" },
+      { path: "/privacy", title: "Privacy", kind: "legal" },
+      { path: "/cookie", title: "Cookie", kind: "legal" },
+    ],
+    hasBlog: false,
+    navLabels: { services: "Progetti", about: "Studio" },
+  },
+
   realestate: {
     ...GENERIC,
     label: "agenzia immobiliare",
@@ -981,13 +1096,57 @@ export const SECTOR_PROFILES: Record<Sector, SectorProfile> = {
   },
 };
 
+/**
+ * Etichette dei settori per l'interfaccia.
+ *
+ * I profili restano in minuscolo perché finiscono anche nei testi generati
+ * ("… a Bologna — studio di architettura"): la tendina invece deve leggersi
+ * come un elenco di mestieri, non come un codice interno.
+ */
+export const SECTOR_LABELS: Record<Sector, string> = {
+  restaurant: "Ristorazione",
+  legal: "Studio legale",
+  medical: "Studi medici e salute",
+  fitness: "Palestre e fitness",
+  saas: "Software e SaaS",
+  ecommerce: "Negozio online",
+  agency: "Agenzia e comunicazione",
+  artisan: "Impresa artigiana",
+  architecture: "Studio di architettura",
+  realestate: "Agenzia immobiliare",
+  education: "Scuola e formazione",
+  generic: "Altro / generico",
+};
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * La parola chiave è presente nel testo?
+ *
+ * In italiano il plurale sposta la vocale finale — "ristrutturazione" diventa
+ * "ristrutturazioni" — e un confronto letterale perderebbe proprio i termini
+ * più usati ("impresa di ristrutturazioni"). Sulle parole lunghe confrontiamo
+ * la radice, ma solo se seguita da una desinenza di plurale: così
+ * "ristrutturazione" riconosce "ristrutturazioni" mentre "artigiano" non
+ * combacia con "artigianali".
+ */
+function matchesKeyword(text: string, keyword: string): boolean {
+  if (text.includes(keyword)) return true;
+  if (keyword.length < 9) return false;
+  const stem = keyword.replace(/[aeio]$/, "");
+  if (stem.length < 8) return false;
+  return new RegExp(`${escapeRegex(stem)}[ie](?![a-zà-ù])`).test(text);
+}
+
 /** Riconosce il settore da un prompt in italiano, pesando la specificità delle parole. */
 export function detectSector(prompt: string): { sector: Sector; matched: string[] } {
   const text = prompt.toLowerCase();
   let best: { sector: Sector; matched: string[]; score: number } = { sector: "generic", matched: [], score: 0 };
 
   for (const [sector, profile] of Object.entries(SECTOR_PROFILES) as [Sector, SectorProfile][]) {
-    const matched = profile.keywords.filter((keyword) => text.includes(keyword));
+    const matched = profile.keywords.filter((keyword) => matchesKeyword(text, keyword));
     // Le parole più lunghe sono più specifiche: "immobiliare" batte "agenzia",
     // "studio dentistico" batte "studio".
     const score = matched.reduce((total, keyword) => total + keyword.length, 0);

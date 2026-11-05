@@ -185,7 +185,7 @@ const ContactProps = z.object({
   showChannels: z.boolean().default(true),
 });
 
-function formField(name: string, index: number): Child {
+function formField(name: string, index: number, blockId: string): Child {
   const config: Record<string, { label: string; type: string; required: boolean; autocomplete?: string }> = {
     name: { label: "Nome e cognome", type: "text", required: true, autocomplete: "name" },
     email: { label: "Email", type: "email", required: true, autocomplete: "email" },
@@ -196,7 +196,7 @@ function formField(name: string, index: number): Child {
     date: { label: "Data preferita", type: "date", required: false },
   };
   const field = config[name] ?? { label: name, type: "text", required: false };
-  const id = `campo-${name}-${index}`;
+  const id = `campo-${blockId}-${name}-${index}`;
 
   return el(
     "div",
@@ -228,17 +228,28 @@ export const contactSplit = defineBlock({
   sectors: ["legal", "medical", "agency", "artisan", "realestate", "fitness", "education", "generic", "restaurant", "saas", "ecommerce"],
   build: (props, ctx, block) => {
     const { contact } = ctx.site.brand;
+    const email = contact.email.trim();
+    const endpoint = props.formEndpoint.trim();
+    const hasEmail = props.formMode !== "mailto" || Boolean(email);
+    const hasEndpoint = props.formMode === "netlify" || props.formMode === "mailto" || Boolean(endpoint);
+    const canSubmit = props.formMode === "netlify" ? true : hasEmail && hasEndpoint;
     const action =
-      props.formMode === "endpoint" && props.formEndpoint ? props.formEndpoint : props.formMode === "netlify" ? "/" : mailHref(contact.email || "info@example.com");
+      props.formMode === "endpoint" ? endpoint || "#" : props.formMode === "netlify" ? "/" : email ? mailHref(email) : "#";
+    const formName = `contatto-${block.id}`;
 
     const formAttrs: Record<string, string | number | boolean> = {
       class: "atl-form",
       action,
       method: "post",
-      "data-atl-form": props.formMode === "mailto" ? "mailto" : "endpoint",
-      "data-atl-mail": contact.email,
+      "data-atl-form": canSubmit ? (props.formMode === "mailto" ? "mailto" : "endpoint") : "disabled",
+      "data-atl-mail": email,
     };
-    if (props.formMode === "netlify") formAttrs["data-netlify"] = "true";
+    if (props.formMode === "netlify") {
+      formAttrs.name = formName;
+      formAttrs["data-netlify"] = "true";
+      formAttrs["netlify-honeypot"] = "website";
+    }
+    const honeypotId = `atl-website-${block.id}`;
 
     return section(block, [
       container([
@@ -264,16 +275,30 @@ export const contactSplit = defineBlock({
                 )
               : null,
           ),
-          el(
-            "form",
-            formAttrs,
-            ...props.fields.map(formField),
-            // Antispam senza servizi esterni: se compilato, il messaggio viene scartato.
-            el("div", { class: "atl-field atl-field--honeypot", "aria-hidden": "true" }, el("label", { for: "atl-website" }, "Non compilare"), el("input", { id: "atl-website", name: "website", type: "text", tabindex: -1, autocomplete: "off" })),
-            el("div", { class: "atl-form__actions" }, el("button", { class: "atl-cta atl-cta--primary", type: "submit" }, el("span", null, "Invia richiesta"), icon("arrowRight", 16, "atl-cta__icon"))),
-            el("p", { class: "atl-form__note" }, props.privacyNote),
-            el("p", { class: "atl-form__status", "data-atl-form-status": "true", role: "status", "aria-live": "polite" }, ""),
-          ),
+          canSubmit
+            ? el(
+                "form",
+                formAttrs,
+                ...(props.formMode === "netlify"
+                  ? [el("input", { type: "hidden", name: "form-name", value: formName })]
+                  : []),
+                ...props.fields.map((field, index) => formField(field, index, block.id)),
+                // Antispam senza servizi esterni: se compilato, il messaggio viene scartato.
+                el(
+                  "div",
+                  { class: "atl-field atl-field--honeypot", "aria-hidden": "true" },
+                  el("label", { for: honeypotId }, "Non compilare"),
+                  el("input", { id: honeypotId, name: "website", type: "text", tabindex: -1, autocomplete: "off" }),
+                ),
+                el("div", { class: "atl-form__actions" }, el("button", { class: "atl-cta atl-cta--primary", type: "submit" }, el("span", null, "Invia richiesta"), icon("arrowRight", 16, "atl-cta__icon"))),
+                el("p", { class: "atl-form__note" }, props.privacyNote),
+                el("p", { class: "atl-form__status", "data-atl-form-status": "true", role: "status", "aria-live": "polite" }, ""),
+              )
+            : el(
+                "div",
+                { class: "atl-form atl-form--disabled" },
+                el("p", { class: "atl-text atl-text--muted" }, "Il modulo non \u00e8 ancora collegato. Aggiungi un'email di contatto o un endpoint nelle impostazioni del progetto."),
+              ),
         ),
       ]),
     ]);

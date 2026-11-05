@@ -40,10 +40,5 @@ function healthPayload(): Record<string, unknown> {
     cloud: cloudStatus(),
     providers: keysReport(keys),
     quota: ledgerState ? ledgerState.snapshot(keysReport(keys).filter((item) => item.ready).map((item) => item.id)) : [],
-    envDetected: Object.fromEntries(
-      Object.entries(process.env)
-        .filter(([key]) => key.endsWith("_API_KEY") || key.endsWith("_TOKEN") || key === "CLOUDFLARE_ACCOUNT_ID")
-        .map(([key, value]) => [key, value ? `presente (${value.slice(0, 3)}…)` : "vuota"]),
-    ),
   };
 }

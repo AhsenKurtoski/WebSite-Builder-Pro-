@@ -1,6 +1,8 @@
 # Atelier
 
-Website builder AI **local-first**: un prompt → un sito completo (testi, struttura, palette, SEO, pagine legali) → editor visuale → export statico autosufficiente.
+Website builder AI **local-first**: da un prompt a un sito completo (testi, struttura, palette, SEO, pagine legali), editor visuale ed export statico autosufficiente.
+
+Prodotto: Atelier · Studio: Ahsen Studio · Autore: Ahsen Kurtoski.
 
 Tre promesse di progetto:
 
@@ -8,12 +10,19 @@ Tre promesse di progetto:
 2. **Anteprima = export.** Una sola sorgente di markup (`src/lib/render/node.ts`) alimenta l'anteprima nell'editor, il file HTML singolo e l'archivio statico. Non esistono due implementazioni da tenere allineate.
 3. **Zero template.** Nessun layout preconfezionato: ogni sito nasce da un brief, con controlli di unicità strutturale e di voce del settore.
 
+## Sicurezza e affidabilità
+
+- **Export sicuro**: JSON-LD escapato; URL sanificati (`href/action/formaction/src`, blocco `javascript:`/`data:` non sicuri). Senza dominio omessi canonical, `og:url`/`og:image`, URL assoluti JSON-LD e `sitemap.xml` (robots senza `Sitemap`), senza inventare domini.
+- **Form reali**: nessun indirizzo email inventato. Senza email/endpoint il modulo resta disabilitato con avviso; modalità Netlify con `name`, `form-name` e honeypot, campi con ID univoci.
+- **API AI hardening**: controllo same-origin, rate limit in memoria, limite body e abort su disconnessione per le route di compilazione/test provider.
+- **UX robusta**: navbar mobile funzionante su tutte le varianti, skip link visibile al focus, animazioni visibili anche senza JS, riapertura preferenze cookie dal footer, conferma prima dell’eliminazione progetto, stato autosave e validazione `postMessage` dell’anteprima.
+
 ## Comandi
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm run verify     # typecheck + test (119 test)
+npm run verify     # typecheck + test (187 test)
 npm run build
 npm start
 ```
@@ -44,7 +53,7 @@ Su questa macchina il binario nativo di SWC è bloccato da una policy di sistema
 /dashboard         i progetti del workspace, con copertina dal tema reale
 /nuovo             il brief → compilazione a stadi → lo Studio
 /studio/[siteId]   editor: canvas (l'HTML vero), inspector, AI, export
-/impostazioni      account, note di riservatezza, chiavi dei provider
+/impostazioni      account, note di riservatezza, stato dei provider AI (chiavi nel server)
 ```
 
 ### Sito pubblico
@@ -86,7 +95,7 @@ I progetti vivono nel browser e ci restano: l'archivio cloud è un'aggiunta, non
 - **L'owner non lo sceglie il client.** Un account GitHub/Google usa `github:<id>` o `google:<id>`; una sessione locale riceve dal server un identificativo di dispositivo in un cookie `atelier_device` (HttpOnly, un anno), così due browser non finiscono nello stesso bucket.
 - **Le tabelle non hanno un endpoint.** Vivono nello schema `atelier`, che non è fra gli schemi esposti via REST e su cui i ruoli Web non hanno nemmeno l'`usage`: l'unica porta è la RPC `atelier_cloud_entry`, che verifica una busta HMAC-SHA256 su `payload.ts` (finestra di 5 minuti) e inoltra l'operazione. Con la sola chiave publishable non si legge e non si scrive.
 
-Lo schema completo sta in `docs/migrations/001-cloud-archive.sql` (tabelle, indici, funzioni interne) e `docs/migrations/002-cloud-entry.sql` (la porta firmata); i passi operativi sono in `docs/DEPLOY.md`.
+Lo schema completo sta in `docs/migrations/001-cloud-archive.sql` (tabelle, indici, funzioni interne) e `docs/migrations/002-cloud-entry.sql` (la porta firmata); i passi operativi sono in `docs/DEPLOY.md`. I progetti `local:ospite` vengono adottati dal workspace corrente durante la sincronizzazione; senza sessione autenticata la compilazione resta local-first ma le route AI sono protette da guardie (origine/rate/body/abort).
 
 ### Deploy e verifica
 

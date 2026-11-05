@@ -44,7 +44,7 @@ export async function loadSite(id: string): Promise<Site | null> {
 
 export async function saveSite(
   site: Site,
-  options: { snapshot?: string; owner?: string; keepTimestamp?: boolean } = {},
+  options: { snapshot?: string; owner?: string; keepTimestamp?: boolean; adoptOwner?: boolean } = {},
 ): Promise<void> {
   const db = getDb();
   // Nel pull dal cloud il timestamp arriva dal documento: va preservato, o la
@@ -53,7 +53,8 @@ export async function saveSite(
   const existing = await db.sites.get(stored.id);
   // Il proprietario non cambia mai da solo: chi ha creato il progetto resta.
   await db.transaction("rw", db.sites, db.deletions, async () => {
-    await db.sites.put(toRecord(stored, existing?.owner ?? options.owner ?? GUEST_OWNER));
+    const owner = options.adoptOwner ? options.owner ?? existing?.owner ?? GUEST_OWNER : existing?.owner ?? options.owner ?? GUEST_OWNER;
+    await db.sites.put(toRecord(stored, owner));
     // Un salvataggio è anche una resurrezione: la tomba cessa di valere.
     await db.deletions.delete(stored.id);
   });

@@ -1,4 +1,5 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { ApiError } from "@/lib/util/api-error";
 
 /**
  * Sessioni firmate, senza database e senza servizi esterni.
@@ -29,9 +30,26 @@ export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 export function sessionSecret(): string {
   const fromEnv = process.env.ATELIER_SESSION_SECRET;
   if (fromEnv && fromEnv.length >= 16) return fromEnv;
-  // Chiave di ripiego: stessa macchina, stesso processo ⇒ stessa firma. Non è un
-  // segreto forte, ed è per questo che l'app la segnala come "sessione locale".
+  // In produzione la chiave di ripiego sarebbe prevedibile: meglio fallire.
+  if (process.env.NODE_ENV === "production") {
+    throw new ApiError(
+      "Sessione non configurata",
+      503,
+      "NOT_CONFIGURED",
+      "Imposta ATELIER_SESSION_SECRET (almeno 16 caratteri) nelle variabili d'ambiente del server.",
+    );
+  }
+  // Chiave di ripiego solo in sviluppo: stessa macchina, stesso processo ⇒ stessa firma.
   return `atelier-local-${process.env.USERNAME ?? process.env.USER ?? "sviluppo"}-v1`;
+}
+
+/** Chiave per verificare: `null` se in produzione non è configurata (nessuna sessione valida). */
+function verificationSecret(): string | null {
+  try {
+    return sessionSecret();
+  } catch {
+    return null;
+  }
 }
 
 export function isLocalSecret(): boolean {
@@ -55,8 +73,8 @@ export function signSession(user: AuthUser, secret = sessionSecret(), now = Date
 }
 
 /** Verifica firma e scadenza; restituisce `null` per qualunque cookie non valido. */
-export function verifySession(token: string | undefined, secret = sessionSecret(), now = Date.now()): AuthUser | null {
-  if (!token) return null;
+export function verifySession(token: string | undefined, secret = verificationSecret(), now = Date.now()): AuthUser | null {
+  if (!token || !secret) return null;
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
 
@@ -87,8 +105,8 @@ export function signValue(value: string, secret = sessionSecret()): string {
   return `${body}.${sign(body, secret)}`;
 }
 
-export function verifyValue(token: string | undefined, secret = sessionSecret()): string | null {
-  if (!token) return null;
+export function verifyValue(token: string | undefined, secret = verificationSecret()): string | null {
+  if (!token || !secret) return null;
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
   const expected = sign(body, secret);

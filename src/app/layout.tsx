@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SITE_NAME, SITE_URL } from "@/lib/util/site-url";
+import { AUTHOR_NAME, SITE_NAME, SITE_URL, STUDIO_NAME } from "@/lib/util/site-url";
 
 const siteUrl = SITE_URL;
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Descrivi l'attività, ottieni un sito completo: pagine, testi, SEO e pagine legali. Editor visuale ed export statico autosufficiente. Local-first: funziona anche senza chiavi API.",
   applicationName: SITE_NAME,
   keywords: ["website builder", "AI", "sito web", "statico", "SEO", "local-first"],
-  authors: [{ name: SITE_NAME }],
+  authors: [{ name: AUTHOR_NAME }],
   // La vetrina si indicizza; le pagine interne dichiarano `noindex` per conto loro.
   robots: { index: true, follow: true },
   openGraph: {
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
       "Un prompt, un sito completo e pubblicabile. Funziona senza chiavi API, l'anteprima è identica all'export.",
   },
   category: "design",
-  creator: SITE_NAME,
-  publisher: SITE_NAME,
+  creator: STUDIO_NAME,
+  publisher: STUDIO_NAME,
   twitter: {
     card: "summary_large_image",
     title: "Atelier — website builder AI",

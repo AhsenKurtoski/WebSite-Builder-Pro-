@@ -63,6 +63,15 @@ export const SITE_JS = `/* Atelier — comportamento del sito. Nessuna dipendenz
     var reject = notice.querySelector("[data-atl-consent-reject]");
     if (accept) accept.addEventListener("click", function () { decide("all"); });
     if (reject) reject.addEventListener("click", function () { decide("necessary"); });
+    doc.addEventListener("click", function (event) {
+      var target = event.target;
+      var trigger = target && target.closest ? target.closest("[data-atl-consent-open], a[href='#preferenze-cookie']") : null;
+      if (!trigger) return;
+      event.preventDefault();
+      try { window.localStorage.removeItem(KEY); } catch (error) { /* modalit? privata */ }
+      notice.hidden = false;
+      notice.removeAttribute("data-consent");
+    });
   }
 
   /* ---- Modulo di contatto ---- */
@@ -79,6 +88,11 @@ export const SITE_JS = `/* Atelier — comportamento del sito. Nessuna dipendenz
         return;
       }
       var mode = form.getAttribute("data-atl-form");
+      if (mode === "disabled") {
+        event.preventDefault();
+        say("Il modulo non \u00e8 ancora collegato.");
+        return;
+      }
       if (mode === "mailto") {
         event.preventDefault();
         var mail = form.getAttribute("data-atl-mail") || "";

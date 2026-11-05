@@ -17,6 +17,7 @@ export const SECTORS = [
   "ecommerce",
   "agency",
   "artisan",
+  "architecture",
   "realestate",
   "education",
   "generic",
@@ -69,9 +70,20 @@ export const MediaSchema = z.object({
   caption: z.string().optional(),
 });
 
+export function isSafeHref(value: string): boolean {
+  const href = value.trim();
+  if (!href) return true;
+  if (href.startsWith("#") || href.startsWith("/") || href.startsWith("./") || href.startsWith("../")) return true;
+  if (/^(https?:|mailto:|tel:)/i.test(href)) return true;
+  return !/^[a-z][a-z0-9+.-]*:/i.test(href);
+}
+
 export const LinkSchema = z.object({
   label: z.string(),
-  href: z.string(),
+  href: z
+    .string()
+    .max(2048)
+    .refine(isSafeHref, "Link non sicuro: sono ammessi solo percorsi, http(s), mailto e tel."),
   emphasis: z.enum(["primary", "secondary", "ghost", "link"]).default("link"),
   external: z.boolean().default(false),
 });

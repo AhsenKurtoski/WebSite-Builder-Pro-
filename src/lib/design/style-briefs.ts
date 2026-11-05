@@ -226,5 +226,7 @@ export function styleMenuForPrompt(): string {
 
 /** Sceglie una variante fra quelle ammesse dallo stile, con un numero già deciso. */
 export function pickStyleVariant<T extends string>(options: readonly T[], random: () => number): T {
-  return options[Math.floor(random() * options.length)] ?? options[0]!;
+  const chosen = options[Math.floor(random() * options.length)] ?? options[0];
+  if (!chosen) throw new Error("Nessuna variante di stile disponibile");
+  return chosen;
 }

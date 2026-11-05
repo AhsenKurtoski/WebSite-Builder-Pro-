@@ -6,7 +6,7 @@ Stato: **verificato sul campo** il 26 settembre 2026, interrogando direttamente 
 
 ## 1. La distinzione fondamentale
 
-Atelier è pensato per funzionare **da solo**: chiavi dell'utente, export statico, zero dipendenze esterne obbligatorie. I connettori MCP invece sono **superpoteri miei** (dell'agente), non del runtime dell'app. Vale per ogni riga di questa tabella:
+Atelier è pensato per funzionare **da solo**: chiavi del server (variabili d'ambiente), export statico, zero dipendenze esterne obbligatorie. I connettori MCP invece sono **superpoteri miei** (dell'agente), non del runtime dell'app. Vale per ogni riga di questa tabella:
 
 | Connettore | Cosa può fare l'**agente** (io) | Cosa deve fare **l'app da sola** |
 |---|---|---|
@@ -127,7 +127,7 @@ Ho ispezionato tutto ciò che era raggiungibile, senza modificare nulla.
 
 1. **Validazione delle env in prebuild**, che fa fallire la build con un report chiaro invece di rompersi a runtime.
 2. **Endpoint `/api/health`** che diagnostica provider e quota in un colpo solo (in Atelier diventa la pagina "Salute provider e quote").
-3. **Errori opachi in produzione, dettagliati in sviluppo**: la stessa regola vale per le chiavi API dell'utente — mai un messaggio che riveli una chiave o un payload sensibile.
+3. **Errori opachi in produzione, dettagliati in sviluppo**: la stessa regola vale per le chiavi API del server — mai un messaggio che riveli una chiave o un payload sensibile.
 4. **Doppio target di deploy** (Vercel + Netlify): l'export deve includere entrambe le configurazioni.
 
 **Cosa non è recuperabile** senza un tuo intervento: il codice sorgente (repo privato) e i deployment (permessi del connettore). Se vuoi che riprenda qualcosa da lì, servono o l'accesso al repo o la ri-autorizzazione di Vercel.

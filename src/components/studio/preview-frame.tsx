@@ -37,9 +37,10 @@ export function PreviewFrame({ site, pagePath, device, zoom, onSelectBlock, sele
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
+      if (event.source !== frame.current?.contentWindow) return;
       const data = event.data as { source?: string; type?: string; blockId?: string };
       if (data?.source !== "atelier-preview") return;
-      if (data.type === "select" && data.blockId) onSelectBlock?.(data.blockId);
+      if (data.type === "select" && typeof data.blockId === "string" && data.blockId.length < 200) onSelectBlock?.(data.blockId);
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

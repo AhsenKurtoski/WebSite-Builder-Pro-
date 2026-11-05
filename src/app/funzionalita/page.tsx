@@ -213,8 +213,8 @@ export default function FunzionalitaPage() {
       <section id="accesso" className="grid scroll-mt-24 gap-4 pt-10">
         <SectionHeading
           eyebrow="accesso e dati"
-          title="Le tue chiavi restano tue, i tuoi progetti restano nel browser"
-          text="Atelier non ha un database di progetti: l'archivio è l'archivio del tuo browser, diviso per accesso. Le chiavi dei provider AI le incolli tu, quando le vuoi, e servono solo alla richiesta che stai facendo."
+          title="Le chiavi restano sul server, i progetti restano nel tuo browser"
+          text="Atelier non ha un database di progetti: l'archivio è l'archivio del tuo browser, diviso per accesso. Le chiavi dei provider AI sono configurate sul server: il browser non le vede e non le invia mai."
         />
         <div className="grid gap-3 lg:grid-cols-2">
           <InfoCard

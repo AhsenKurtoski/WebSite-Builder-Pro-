@@ -55,7 +55,7 @@ export function requireCloudContext(request: Request): CloudContext {
       const fresh = randomBytes(16).toString("hex");
       deviceCookie = serializeCookie(DEVICE_COOKIE, fresh, {
         maxAge: DEVICE_MAX_AGE_SECONDS,
-        httpOnly: true,
+        httpOnly: false,
         sameSite: "lax",
         secure: isSecureRequest(request),
       });

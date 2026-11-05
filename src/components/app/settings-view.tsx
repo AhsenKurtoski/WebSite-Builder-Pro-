@@ -75,8 +75,8 @@ export function SettingsView({ pendingLogin }: { pendingLogin: boolean }) {
           <div className="card grid gap-2 p-5">
             <h2 className="text-sm font-semibold">Note sulla riservatezza</h2>
             <ul className="grid gap-1.5 text-xs text-ink-500">
-              <li>· Le chiavi API non vengono mai salvate sul server: le usa la route interna solo per la singola richiesta.</li>
-              <li>· In memoria per la sessione, oppure cifrate AES-GCM con una passphrase che non memorizziamo.</li>
+              <li>· Le chiavi AI sono variabili d&apos;ambiente del server: il browser non le riceve né le invia mai.</li>
+              <li>· Nessun dato di chiave viene salvato nel browser o nei progetti esportati.</li>
               <li>· La sessione è un cookie HttpOnly firmato HMAC, valido 30 giorni.</li>
               <li>· I progetti restano in IndexedDB: puoi esportarli quando vuoi, anche senza account.</li>
             </ul>
@@ -88,8 +88,8 @@ export function SettingsView({ pendingLogin }: { pendingLogin: boolean }) {
             <span className="mono-label">provider</span>
             <h2 className="text-2xl font-semibold tracking-tight">Chiavi AI</h2>
             <p className="text-sm text-ink-500">
-              Tutte le chiavi qui sotto hanno un piano gratuito. Il router le prova in cascata: se una finisce la quota, passa alla
-              successiva senza interrompere il lavoro.
+              Gemini ha due chiavi: la principale e una di riserva da un altro progetto Google Cloud. Se la principale finisce la
+              quota, il router passa alla riserva e la compilazione continua senza interruzioni.
             </p>
           </header>
 

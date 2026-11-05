@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSession } from "@/lib/auth/session-client";
+import { ownerOf, useSession } from "@/lib/auth/session-client";
 import { syncWithCloud } from "@/lib/storage/cloud-client";
 
 type CloudState =
@@ -48,7 +48,11 @@ export function CloudPanel() {
   const load = useCallback(async () => {
     setState({ kind: "loading" });
     try {
-      const response = await fetch("/api/cloud/status");
+      const response = await fetch("/api/cloud/status", { cache: "no-store" });
+      if (!response.ok) {
+        setState({ kind: "error", message: response.status === 401 ? "Serve una sessione per usare l'archivio." : `Il servizio ha risposto ${response.status}.` });
+        return;
+      }
       const info = (await response.json()) as StatusInfo;
       if (!info.configured) {
         setState({ kind: "ready", info });
@@ -67,7 +71,7 @@ export function CloudPanel() {
   async function sync() {
     setOutcome(null);
     setState({ kind: "syncing" });
-    const result = await syncWithCloud(user ? `${user.provider}:${user.id}` : "local:ospite");
+    const result = await syncWithCloud(ownerOf(user));
     setOutcome(result);
     await load();
   }

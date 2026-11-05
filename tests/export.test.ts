@@ -7,6 +7,10 @@ import { BriefSchema, type Site } from "@/lib/schema/site";
 
 const NOW = "2026-09-26T10:00:00.000Z";
 
+function withDomain(site: Site, domain = "https://esempio.it"): Site {
+  return { ...site, meta: { ...site.meta, domain } };
+}
+
 function buildSite(overrides: Partial<Parameters<typeof composeSite>[0]> = {}): Site {
   const brief = BriefSchema.parse({
     prompt: "Pizzeria napoletana a Milano con forno a legna e menu senza glutine",
@@ -88,7 +92,7 @@ describe("reimportazione del progetto", () => {
 });
 
 describe("export statico", () => {
-  const site = buildSite();
+  const site = withDomain(buildSite());
 
   it("produce tutti i file necessari a pubblicare", () => {
     const paths = renderSite(site).map((file) => file.path);
@@ -141,6 +145,15 @@ describe("export statico", () => {
     expect(relativizeLinks('<a href="/">x</a>', 1)).toContain('href="../index.html"');
     expect(relativizeLinks('<link href="/styles.css">', 2)).toContain('href="../../styles.css"');
     expect(relativizeLinks('<a href="https://example.com">x</a>', 1)).toContain('href="https://example.com"');
+  });
+
+  it("omette canonical e sitemap quando il dominio non e impostato", () => {
+    const noDomain = buildSite();
+    const files = renderSite(noDomain);
+    const home = files.find((file) => file.path === "index.html")!;
+    expect(home.contents).not.toContain('rel="canonical"');
+    expect(home.contents).not.toContain("example.com");
+    expect(files.some((file) => file.path === "sitemap.xml")).toBe(false);
   });
 
   it("include SEO, dati strutturati e file per i crawler AI", () => {

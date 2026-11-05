@@ -1,6 +1,6 @@
 import { SiteSchema, type Site } from "@/lib/schema/site";
 import { loadSite, saveSite, deleteSite, listDeletions, clearDeletions } from "./site-repo";
-import { listSites } from "./site-repo";
+import { GUEST_OWNER, listSites } from "./site-repo";
 import type { SiteRecord } from "./db";
 import type { SyncPlan } from "./sync-plan";
 
@@ -63,7 +63,16 @@ async function postJson<T>(url: string, body: unknown): Promise<{ ok: boolean; s
 
 export async function syncWithCloud(owner: string): Promise<SyncOutcome> {
   // 1) Indice locale: solo metadati, i documenti restano qui finché servono.
-  const local: SiteRecord[] = await listSites(owner);
+  const primary = await listSites(owner);
+  const legacy = owner === GUEST_OWNER ? [] : await listSites(GUEST_OWNER);
+  const seen = new Set(primary.map((row) => row.id));
+  for (const row of legacy) {
+    if (seen.has(row.id)) continue;
+    await saveSite(row.site, { owner, keepTimestamp: true, adoptOwner: true });
+    primary.push({ ...row, owner });
+    seen.add(row.id);
+  }
+  const local: SiteRecord[] = primary;
   const index = local.map((row) => ({ id: row.id, updatedAt: row.updatedAt }));
   const deletions = await listDeletions();
 
@@ -81,7 +90,7 @@ export async function syncWithCloud(owner: string): Promise<SyncOutcome> {
   for (const item of pulled) {
     const parsed = SiteSchema.safeParse(item.site);
     if (!parsed.success) continue;
-    await saveSite(parsed.data, { owner, keepTimestamp: true });
+    await saveSite(parsed.data, { owner, keepTimestamp: true, adoptOwner: true });
     pulledCount += 1;
   }
   for (const id of plan.deleteLocal) {

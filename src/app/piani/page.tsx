@@ -39,7 +39,7 @@ const PLANS = [
     summary: "Aggiungi una chiave di un provider AI e i testi vengono riscritti dal modello: la direzione creativa e i contenuti diventano specifici.",
     points: [
       "Google Gemini, Groq, Cerebras, OpenRouter, Cloudflare Workers AI",
-      "chiavi salvate solo nel tuo browser",
+      "chiavi AI configurate solo sul server",
       "nessun costo per progetto, nessun credito da comprare qui",
       "se il provider è lento o fallisce, il sito arriva comunque",
     ],

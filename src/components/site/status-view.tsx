@@ -128,7 +128,7 @@ export function StatusView() {
             {report ? `${readyProviders}/${report.providers.length}` : "—"}
           </p>
           <p className="text-[12px] leading-relaxed text-ink-500">
-            I provider contano da due lati: la variabile d&apos;ambiente dell&apos;istanza e la chiave che inserisci qui. Se sono
+            I provider contano da due lati: la variabile d&apos;ambiente dell&apos;istanza e la chiave configurata sul server. Se sono
             tutti spenti, l&apos;AI resta opzionale e il sito arriva comunque.
           </p>
         </article>

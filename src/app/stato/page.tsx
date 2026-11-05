@@ -34,7 +34,7 @@ const CHECKLIST = [
   },
   {
     title: "Chiavi dei provider AI",
-    text: "Facoltative e sostituibili: se mancano, resta attivo il compilatore deterministico. Le chiavi possono anche essere inserite dall'utente nel browser.",
+    text: "Facoltative e sostituibili: se mancano, resta attivo il compilatore deterministico. Le chiavi si configurano come variabili d'ambiente del server.",
   },
 ];
 

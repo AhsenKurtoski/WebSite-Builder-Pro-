@@ -159,7 +159,7 @@ export function runGates(site: Site, renderedFiles: { path: string; contents: st
       id: "domain",
       severity: "warning",
       title: "Dominio non impostato",
-      detail: "Canonical, sitemap e og:url usano un dominio segnaposto.",
+      detail: "Canonical, sitemap, og:url e URL assoluti JSON-LD non vengono generati finche il dominio non e impostato.",
       fix: "Imposta il dominio prima di pubblicare, così i motori indicizzano l'indirizzo giusto.",
     });
   }

@@ -9,7 +9,7 @@ import { runGates, type GateReport } from "@/lib/quality/gates";
 import { estimateTokens, QuotaLedger } from "@/lib/ai/quota-ledger";
 import { describeCascade, withCascade, type CascadeAttempt } from "@/lib/ai/router";
 import { BRIEF_SYSTEM, COPY_SYSTEM, briefPrompt, copyPrompt } from "@/lib/ai/prompts";
-import { availableProviders, providerSpec, resolveKeys, type ProviderId, type ProviderKeys } from "@/lib/ai/providers";
+import { availableProviders, providerSpec, resolveKeys, type ProviderId } from "@/lib/ai/providers";
 import {
   STYLE_PRESET_NAMES,
   type Block,
@@ -33,21 +33,69 @@ import {
 /**
  * Blueprint: la direzione creativa proposta dal modello.
  *
- * I campi sono volutamente tolleranti (stringhe, numero coercibile): un modello
- * che risponde "Tech" invece di "tech", o una tinta come "210", non deve far
- * fallire tutto il sito. La normalizzazione avviene qui sotto, con i ripieghi.
+ * I campi sono volutamente tolleranti: un modello che risponde "Tech" invece di
+ * "tech", una tinta come "210", una tagline più lunga del richiesto o un campo
+ * mancante non devono far perdere il lavoro fatto finora. `.catch()` tiene il
+ * valore quando è conforme e mette il ripiego quando non lo è, invece di far
+ * fallire l'intera risposta; la normalizzazione avviene qui sotto.
+ *
+ * L'unico esito che consideriamo un fallimento è una risposta senza nessun campo
+ * utilizzabile: se ne occupa `isUsefulBlueprint`.
  */
 export const BlueprintResponse = z.object({
-  preset: z.string().default(""),
-  fontPairing: z.string().default(""),
-  paletteHue: z.coerce.number().min(0).max(360).optional(),
-  tagline: z.string().max(180).default(""),
-  tone: z.string().max(120).default(""),
+  preset: z.string().catch(""),
+  fontPairing: z.string().catch(""),
+  // Una tinta fuori scala è un errore del modello, non del sito: meglio nessuna
+  // tinta che una tinta sbagliata.
+  paletteHue: z.coerce.number().min(0).max(360).optional().catch(undefined),
+  tagline: z.string().catch(""),
+  tone: z.string().catch(""),
   pages: z
-    .array(z.object({ path: z.string(), seoTitle: z.string().default(""), seoDescription: z.string().default("") }))
-    .default([]),
+    .array(
+      z.object({
+        path: z.string().catch(""),
+        seoTitle: z.string().catch(""),
+        seoDescription: z.string().catch(""),
+      }),
+    )
+    .catch([]),
 });
 export type BlueprintResponse = z.infer<typeof BlueprintResponse>;
+
+/** Vero se il blueprint contiene almeno un elemento applicabile al sito. */
+export function isUsefulBlueprint(value: BlueprintResponse): boolean {
+  return Boolean(
+    value.preset || value.fontPairing || value.tagline || value.tone || value.paletteHue !== undefined || value.pages.length > 0,
+  );
+}
+
+/** Vero se la riscrittura contiene almeno un campo applicabile alla pagina. */
+export function isUsefulCopy(value: CopyResponse): boolean {
+  return Boolean(
+    value.seoTitle ||
+      value.heroTitle ||
+      value.heroSubtitle ||
+      value.ctaTitle ||
+      value.ctaText ||
+      value.services.length > 0 ||
+      value.process.length > 0 ||
+      value.faq.length > 0 ||
+      value.testimonials.length > 0,
+  );
+}
+
+/**
+ * Errore di "risposta inutilizzabile".
+ *
+ * Porta lo stesso nome che usa l'SDK per gli errori di formato, così il
+ * ritentativo di `withFormatRetry` si attiva anche quando il modello risponde
+ * nel modo giusto ma senza niente dentro.
+ */
+function emptyResponseError(detail: string): Error {
+  const error = new Error(`No object generated: ${detail}`);
+  error.name = "AI_NoObjectGeneratedError";
+  return error;
+}
 
 /** Riconosce lo stile anche se il modello lo scrive in modo approssimativo. */
 export function normalizePreset(value: string): StylePreset | null {
@@ -73,17 +121,19 @@ export function normalizeFontPairing(value: string): string | null {
 }
 
 export const CopyResponse = z.object({
-  seoTitle: z.string().default(""),
-  seoDescription: z.string().default(""),
-  heroEyebrow: z.string().default(""),
-  heroTitle: z.string().default(""),
-  heroSubtitle: z.string().default(""),
-  services: z.array(z.object({ title: z.string(), text: z.string().default("") })).default([]),
-  process: z.array(z.object({ title: z.string(), text: z.string().default("") })).default([]),
-  faq: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
-  testimonials: z.array(z.object({ quote: z.string(), author: z.string(), role: z.string().default("") })).default([]),
-  ctaTitle: z.string().default(""),
-  ctaText: z.string().default(""),
+  seoTitle: z.string().catch(""),
+  seoDescription: z.string().catch(""),
+  heroEyebrow: z.string().catch(""),
+  heroTitle: z.string().catch(""),
+  heroSubtitle: z.string().catch(""),
+  services: z.array(z.object({ title: z.string().catch(""), text: z.string().catch("") })).catch([]),
+  process: z.array(z.object({ title: z.string().catch(""), text: z.string().catch("") })).catch([]),
+  faq: z.array(z.object({ question: z.string().catch(""), answer: z.string().catch("") })).catch([]),
+  testimonials: z
+    .array(z.object({ quote: z.string().catch(""), author: z.string().catch(""), role: z.string().catch("") }))
+    .catch([]),
+  ctaTitle: z.string().catch(""),
+  ctaText: z.string().catch(""),
 });
 export type CopyResponse = z.infer<typeof CopyResponse>;
 
@@ -112,6 +162,65 @@ function patchBlocks(page: Page, type: string, patch: (block: Block) => Record<s
     ...page,
     blocks: page.blocks.map((block) => (block.type === type ? patchBlock(block, patch(block)) : block)),
   };
+}
+
+/**
+ * Opzioni di provider per gli stadi che chiedono un output strutturato.
+ *
+ * Due trappole note, entrambe dei modelli gpt-oss su provider gratuiti:
+ *
+ * 1. Ragionamento. Sono modelli che pensano prima di scrivere e, con gli scopi
+ *    predefiniti, possono consumare tutto lo spazio in ragionamento e consegnare
+ *    una risposta vuota: il provider la rifiuta con `json_validate_failed`
+ *    (verificato: 2/2 risposte vuote con lo sforzo predefinito, 4/4 corrette con
+ *    `reasoningEffort: "low"`). Chiediamo quindi lo sforzo minimo.
+ * 2. Schema stretto. La modalità `strict` pretende che ogni campo compaia in
+ *    `required`, ma i nostri schemi hanno campi con valore predefinito (devono
+ *    essere tolleranti): la richiesta verrebbe respinta con 400 prima di
+ *    generare. La validazione, in ogni caso, la ripete lo schema zod.
+ *
+ * Groq vuole anche la parola "json" nel prompt quando si chiede un oggetto JSON:
+ * se ne occupa `systemWithFormat`.
+ */
+export function structuredProviderOptions(
+  provider: ProviderId,
+): Record<string, Record<string, string | boolean>> | undefined {
+  if (usesPlainJson(provider)) return { [provider]: { structuredOutputs: false, reasoningEffort: "low" } };
+  if (provider === "cerebras") return { cerebras: { strictJsonSchema: false, reasoningEffort: "low" } };
+  return undefined;
+}
+
+/** Provider a cui chiediamo un JSON semplice al posto di uno schema. */
+function usesPlainJson(provider: ProviderId): boolean {
+  return provider === "groq";
+}
+
+/**
+ * Istruzione di formato.
+ *
+ * Groq accetta `response_format: json_object` solo se nei messaggi compare la
+ * parola "json" (altrimenti risponde 400), e chiederlo esplicitamente aiuta
+ * anche gli altri modelli a non incorniciare la risposta con testo o commenti.
+ */
+const JSON_INSTRUCTION = "Rispondi esclusivamente con un oggetto JSON valido: nessun testo prima o dopo, nessun blocco di codice.";
+
+/** Prompt di sistema con l'istruzione di formato, dove serve. */
+function systemWithFormat(system: string, provider: ProviderId): string {
+  return usesPlainJson(provider) ? `${system}\n${JSON_INSTRUCTION}` : system;
+}
+
+/**
+ * Traduce l'errore di uno stadio in una frase leggibile.
+ *
+ * Il chiamante non deve leggere "This operation was aborted": chi usa l'app
+ * vuole sapere cosa è successo e che il sito c'è comunque.
+ */
+export function describeStageFailure(message: string): string {
+  if (/abort|tempo massimo/i.test(message)) return "Nessun provider ha risposto entro il tempo previsto";
+  if (/tempo di compilazione esaurito/i.test(message)) return "Tempo degli stadi AI esaurito";
+  if (/nessun provider/i.test(message)) return "Nessuna chiave AI configurata sul server";
+  if (/in attesa di quota/i.test(message)) return "Provider in pausa per quota";
+  return message;
 }
 
 /** Applica il blueprint: preset, font, tinta e SEO. Non tocca i contenuti. */
@@ -249,7 +358,6 @@ export function applyCopy(site: Site, path: string, copy: CopyResponse): Site {
 
 export type CompileOptions = {
   brief: Brief;
-  keys?: ProviderKeys;
   ledger?: QuotaLedger;
   knownSignatures?: string[];
   variation?: number;
@@ -261,6 +369,8 @@ export type CompileOptions = {
    * il sito del composer: un provider lento non deve mai bloccare il lavoro.
    */
   budgetMs?: number;
+  /** Abort esterno (disconnessione del client): interrompe gli stadi AI in corso. */
+  signal?: AbortSignal;
   onEvent?: (event: CompileEvent) => void;
 };
 
@@ -269,6 +379,59 @@ const BLUEPRINT_BUDGET_MS = 25_000;
 const COPY_BUDGET_MS = 20_000;
 const TOTAL_BUDGET_MS = 90_000;
 const MIN_SLICE_MS = 4_000;
+
+/**
+ * Budget di risposta, ragionamento incluso.
+ *
+ * I modelli di ragionamento consumano token prima di scrivere: un tetto troppo
+ * basso tronca il JSON a metà e fa fallire lo stadio per un problema di spazio,
+ * non di contenuto.
+ */
+const BLUEPRINT_MAX_TOKENS = 2_048;
+const COPY_MAX_TOKENS = 4_096;
+
+/** Un modello può sbagliare il formato una volta: un secondo tentativo salva lo stadio. */
+const STRUCTURED_ATTEMPTS = 2;
+
+/** Vero se l'errore è di formato (JSON non conforme), non di rete o di quota. */
+function isFormatFailure(error: unknown): boolean {
+  const name = (error as { name?: string } | null)?.name ?? "";
+  const message = error instanceof Error ? error.message : String(error);
+  // Il provider può anche rifiutare la risposta per formato ("Failed to
+  // validate JSON"): è comunque un problema di forma, non di sostanza.
+  return (
+    name === "AI_NoObjectGeneratedError" ||
+    /no object generated|could not parse the response|failed to validate json/i.test(message)
+  );
+}
+
+/**
+ * Fetta di tempo per un singolo tentativo di uno stadio.
+ *
+ * Il budget dello stadio non si rinnova a ogni provider: se il primo candidato
+ * consuma tutto, i successivi ricevono solo la fetta minima e la cascata si
+ * chiude, invece di sommare un timeout per candidato (era il caso peggiore:
+ * quattro provider che non rispondono = oltre un minuto di attesa).
+ */
+export function attemptSliceMs(stageDeadline: number, now: number, capMs: number): number {
+  return Math.max(MIN_SLICE_MS, Math.min(capMs, stageDeadline - now));
+}
+
+/**
+ * Ripete una chiamata strutturata solo se il modello ha sbagliato il formato.
+ *
+ * Un secondo tentativo costa pochi secondi; senza di esso un errore di forma
+ * butterebbe via l'intero stadio, e l'utente perderebbe la riscrittura dei testi.
+ */
+export async function withFormatRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      if (attempt >= STRUCTURED_ATTEMPTS || !isFormatFailure(error)) throw error;
+    }
+  }
+}
 
 /**
  * Chiamata AI con scadenza.
@@ -280,9 +443,13 @@ const MIN_SLICE_MS = 4_000;
 export async function withStageDeadline<T>(
   limitMs: number,
   run: (signal: AbortSignal) => Promise<T>,
+  external?: AbortSignal,
 ): Promise<T> {
   const limit = Math.min(Math.max(limitMs, 250), 60_000);
   const controller = new AbortController();
+  const abortExternal = () => controller.abort();
+  if (external?.aborted) controller.abort();
+  else external?.addEventListener("abort", abortExternal, { once: true });
   const aborter = setTimeout(() => controller.abort(), limit);
   let killer: ReturnType<typeof setTimeout> | undefined;
 
@@ -296,6 +463,7 @@ export async function withStageDeadline<T>(
   } finally {
     clearTimeout(aborter);
     if (killer) clearTimeout(killer);
+    external?.removeEventListener("abort", abortExternal);
   }
 }
 
@@ -315,7 +483,8 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
     options.onEvent?.(event);
   };
 
-  const keys = resolveKeys(options.keys ?? {});
+  // Le chiavi arrivano solo dall'ambiente del server: il client non le invia mai.
+  const keys = resolveKeys();
   const ledger = options.ledger ?? new QuotaLedger();
   const warnings: string[] = [];
   const maxAiPages = options.maxAiPages ?? 4;
@@ -342,6 +511,8 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
   } else {
     // Stadio 2 — blueprint: stile, font, tinta, SEO.
     const blueprintStarted = Date.now();
+    // Il budget vale per lo stadio, non per ogni tentativo.
+    const blueprintDeadline = blueprintStarted + attemptSliceMs(deadline, blueprintStarted, BLUEPRINT_BUDGET_MS);
     emit({ type: "stage", id: "blueprint", status: "running", detail: "Scelta della direzione creativa" });
 
     const blueprintResult = await withCascade(
@@ -350,14 +521,25 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
         // Tempo finito: ogni tentativo successivo fallisce subito, così la
         // cascata si chiude invece di sommare un timeout per provider.
         if (timeLeft() < MIN_SLICE_MS) throw new Error("Tempo di compilazione esaurito per gli stadi AI");
-        const { output, usage } = await withStageDeadline(Math.min(BLUEPRINT_BUDGET_MS, timeLeft()), (abortSignal) =>
-          generateText({
-            model,
-            system: BRIEF_SYSTEM,
-            prompt: briefPrompt(options.brief, site),
-            output: Output.object({ schema: BlueprintResponse }),
-            abortSignal,
-          }),
+        const { output, usage } = await withStageDeadline(
+          attemptSliceMs(blueprintDeadline, Date.now(), BLUEPRINT_BUDGET_MS),
+          (abortSignal) =>
+            withFormatRetry(async () => {
+              const result = await generateText({
+                model,
+                system: systemWithFormat(BRIEF_SYSTEM, candidate.provider),
+                prompt: briefPrompt(options.brief, site),
+                output: Output.object({ schema: BlueprintResponse }),
+                providerOptions: structuredProviderOptions(candidate.provider),
+                maxOutputTokens: BLUEPRINT_MAX_TOKENS,
+                abortSignal,
+              });
+              // Una risposta formalmente valida ma vuota non è un risultato: vale
+              // un altro tentativo, o il passaggio al provider successivo.
+              if (!isUsefulBlueprint(result.output)) throw emptyResponseError("blueprint senza contenuti utilizzabili");
+              return result;
+            }),
+          options.signal,
         );
         ledger.record(candidate.provider, estimateTokens(usage, options.brief.prompt));
         return output;
@@ -401,7 +583,13 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
         detail: `Direzione: ${site.theme.preset}, tinta ${Math.round(site.theme.palette.primary.h)}°`,
       });
     } else {
-      emit({ type: "stage", id: "blueprint", status: "failed", ms: Date.now() - blueprintStarted, detail: blueprintResult.error });
+      emit({
+        type: "stage",
+        id: "blueprint",
+        status: "failed",
+        ms: Date.now() - blueprintStarted,
+        detail: describeStageFailure(blueprintResult.error),
+      });
       const message = describeCascade(blueprintResult.attempts as CascadeAttempt[], blueprintResult.skipped);
       if (message) {
         emit({ type: "warning", message });
@@ -428,16 +616,28 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
           break;
         }
 
+        // Ogni pagina ha il suo budget: una pagina lenta non toglie tempo alle altre.
+        const copyDeadline = Date.now() + attemptSliceMs(deadline, Date.now(), COPY_BUDGET_MS);
+
         const copyResult = await withCascade({ task: "copy", keys, ledger, ready }, async (model, candidate) => {
           if (timeLeft() < MIN_SLICE_MS) throw new Error("Tempo di compilazione esaurito per gli stadi AI");
-          const { output, usage } = await withStageDeadline(Math.min(COPY_BUDGET_MS, timeLeft()), (abortSignal) =>
-            generateText({
-              model,
-              system: COPY_SYSTEM,
-              prompt: copyPrompt(site, page),
-              output: Output.object({ schema: CopyResponse }),
-              abortSignal,
-            }),
+          const { output, usage } = await withStageDeadline(
+            attemptSliceMs(copyDeadline, Date.now(), COPY_BUDGET_MS),
+            (abortSignal) =>
+              withFormatRetry(async () => {
+                const result = await generateText({
+                  model,
+                  system: systemWithFormat(COPY_SYSTEM, candidate.provider),
+                  prompt: copyPrompt(site, page),
+                  output: Output.object({ schema: CopyResponse }),
+                  providerOptions: structuredProviderOptions(candidate.provider),
+                  maxOutputTokens: COPY_MAX_TOKENS,
+                  abortSignal,
+                });
+                if (!isUsefulCopy(result.output)) throw emptyResponseError("contenuti non riscritti dal modello");
+                return result;
+              }),
+            options.signal,
           );
           ledger.record(candidate.provider, estimateTokens(usage, page.title));
           return output;
@@ -448,7 +648,10 @@ export async function compileSite(options: CompileOptions): Promise<CompileOutpu
           emit({ type: "provider", provider: copyResult.provider, label: providerSpec(copyResult.provider).label, model: copyResult.model, task: "copy" });
           emit({ type: "page", path, title: copyResult.value.seoTitle || page.title });
         } else {
-          emit({ type: "warning", message: `Contenuti di "${page.title}" non riscritti: ${copyResult.error}` });
+          emit({
+            type: "warning",
+            message: `Contenuti di "${page.title}" non riscritti: ${describeStageFailure(copyResult.error).toLowerCase()}`,
+          });
         }
       }
 

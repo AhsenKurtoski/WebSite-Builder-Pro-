@@ -117,7 +117,7 @@ export default function TerminiPage() {
           <h2>8. Dati e privacy</h2>
           <p>
             Il trattamento dei dati è descritto nella pagina <Link href="/privacy">Privacy</Link>. In sintesi: i progetti vivono nel
-            tuo browser, le chiavi non vengono conservate dal server e l&apos;unico cookie è quello tecnico di sessione.
+            tuo browser, le chiavi AI sono variabili d&apos;ambiente del server e non arrivano mai al browser e l&apos;unico cookie è quello tecnico di sessione.
           </p>
 
           <h2>9. Modifiche a questi termini</h2>

@@ -6,11 +6,11 @@ import { SITE_NAME, absoluteUrl } from "@/lib/util/site-url";
 export const metadata: Metadata = {
   title: "Privacy",
   description:
-    "Cosa raccoglie Atelier e cosa non raccoglie mai: progetti nel browser, chiavi API non conservate, un solo cookie tecnico di sessione, nessun tracciamento.",
+    "Cosa raccoglie Atelier e cosa non raccoglie mai: progetti nel browser, chiavi AI solo sul server, un solo cookie tecnico di sessione, nessun tracciamento.",
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: "Privacy di Atelier",
-    description: "Progetti nel browser, chiavi non conservate, un solo cookie tecnico: la mappa dei dati in una pagina.",
+    description: "Progetti nel browser, chiavi solo sul server, un solo cookie tecnico: la mappa dei dati in una pagina.",
     url: absoluteUrl("/privacy"),
     type: "article",
   },

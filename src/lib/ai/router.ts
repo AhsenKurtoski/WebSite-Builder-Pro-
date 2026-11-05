@@ -13,15 +13,16 @@ import { availableProviders, providerSpec, resolveModel, type ProviderId, type P
 export type Task = "brief" | "blueprint" | "copy" | "section" | "audit" | "repair";
 
 export const TASK_CHAINS: Record<Task, ProviderId[]> = {
-  // Serve ragionamento e output strutturato affidabile.
-  brief: ["gemini", "groq", "cerebras", "openrouter"],
-  blueprint: ["gemini", "groq", "cerebras", "openrouter"],
+  // Serve ragionamento e output strutturato affidabile. Gemini predefinita, poi
+  // la chiave di riserva (quota separata), poi gli altri provider opzionali.
+  brief: ["gemini", "gemini-fallback", "groq", "cerebras", "openrouter"],
+  blueprint: ["gemini", "gemini-fallback", "groq", "cerebras", "openrouter"],
   // Volume alto di testo: Cerebras ha il milione di token al giorno.
-  copy: ["cerebras", "groq", "gemini", "openrouter", "cloudflare"],
+  copy: ["cerebras", "groq", "gemini", "gemini-fallback", "openrouter", "cloudflare"],
   // Iterazione rapida: Groq è il più veloce.
-  section: ["groq", "gemini", "cerebras", "cloudflare"],
-  audit: ["gemini", "groq", "cerebras"],
-  repair: ["gemini", "groq", "cerebras"],
+  section: ["groq", "gemini", "gemini-fallback", "cerebras", "cloudflare"],
+  audit: ["gemini", "gemini-fallback", "groq", "cerebras"],
+  repair: ["gemini", "gemini-fallback", "groq", "cerebras"],
 };
 
 export type Candidate = { provider: ProviderId; model: string };
@@ -48,6 +49,25 @@ export function candidates(context: RouteContext): Candidate[] {
   // Se nessuno è disponibile ora, restituiamo comunque la catena: il chiamante
   // decide se aspettare o proseguire con il composer offline.
   return readyNow.length > 0 ? readyNow : usable;
+}
+
+/**
+ * Quanto tenere in pausa un provider dopo un errore.
+ *
+ * La pausa non è una punizione: senza di essa ogni stadio della stessa
+ * compilazione ritenta il provider rotto e ne aspetta la scadenza, così un
+ * modello che non risponde fa perdere un minuto all'utente per ogni pagina.
+ * Con la pausa il primo tentativo paga l'errore e i successivi passano avanti.
+ *   - quota esaurita  → quanto chiede il provider (o un minuto);
+ *   - chiave rifiutata → un'ora: è inutile riprovare;
+ *   - contesto troppo lungo → nessuna pausa: dipende dalla singola richiesta;
+ *   - errore generico → due minuti: coprono il resto della compilazione.
+ */
+function cooldownFor(classified: { kind: string; retryAfter?: number }): number {
+  if (classified.kind === "rate") return classified.retryAfter ?? 60;
+  if (classified.kind === "auth") return 3600;
+  if (classified.kind === "context") return 0;
+  return 120;
 }
 
 export type CascadeAttempt = { provider: ProviderId; model: string; error: string; kind: string };
@@ -84,7 +104,7 @@ export async function withCascade<T>(
       return { ok: true, value, provider: candidate.provider, model: candidate.model, attempts };
     } catch (error) {
       const classified = classifyProviderError(error);
-      const cooldown = classified.kind === "rate" ? classified.retryAfter ?? 60 : classified.kind === "auth" ? 3600 : 0;
+      const cooldown = cooldownFor(classified);
       if (cooldown > 0) context.ledger.coolDown(candidate.provider, cooldown, classified.message);
       attempts.push({ provider: candidate.provider, model: candidate.model, error: classified.message.slice(0, 240), kind: classified.kind });
 

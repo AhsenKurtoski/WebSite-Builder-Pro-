@@ -14,7 +14,7 @@ export async function GET(request: Request): Promise<Response> {
       user,
       localSecret: isLocalSecret(),
       note: user
-        ? "Sessione attiva. Le chiavi API restano nel browser e non vengono mai salvate sul server."
+        ? "Sessione attiva. Le chiavi AI sono configurate sul server e non vengono mai inviate al browser."
         : "Nessuna sessione: i progetti sono comunque in questo browser.",
     });
   } catch (error) {

@@ -33,7 +33,7 @@ export const navbarClassic = defineBlock({
   variant: "classic",
   label: "Navigazione classica",
   category: "structure",
-  description: "Logo a sinistra, voci al centro, pulsante d'azione a destra. Sticky su scroll.",
+  description: "Logo a sinistra, voci di menu e pulsante d'azione a destra. Sticky su scroll.",
   schema: NavProps,
   defaults: NavProps.parse({ links: [] }),
   tags: ["nav", "menu", "header"],
@@ -41,8 +41,15 @@ export const navbarClassic = defineBlock({
     el(
       "header",
       {
-        class: cls("atl-nav atl-nav--classic", props.sticky && "atl-nav--sticky"),
+        class: cls(
+          "atl-nav atl-nav--classic",
+          props.sticky && "atl-nav--sticky",
+          block.style.hideOnMobile && "atl-hide-mobile",
+          block.motion !== "none" && "atl-motion",
+        ),
+        id: block.style.anchor,
         "data-nav": "true",
+        "data-motion": block.motion !== "none" ? block.motion : undefined,
         "data-block": block.id,
       },
       container([
@@ -63,8 +70,8 @@ export const navbarClassic = defineBlock({
           ...props.links.map((link) =>
             el("a", { class: "atl-nav__link", href: link.href, ...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {}) }, link.label),
           ),
+          props.cta ? cta(props.cta) : null,
         ),
-        el("div", { class: "atl-nav__actions" }, props.cta ? cta(props.cta) : null),
       ]),
     ),
 });
@@ -74,20 +81,42 @@ export const navbarCentered = defineBlock({
   variant: "centered",
   label: "Navigazione centrata",
   category: "structure",
-  description: "Marchio su una riga, voci di menu centrate sotto: adatto a studi e attività di prestigio.",
+  description: "Marchio su una riga, voci di menu centrate sotto: adatto a studi e attivit? di prestigio.",
   schema: NavProps,
   defaults: NavProps.parse({ links: [], sticky: false }),
   tags: ["nav", "menu", "centered"],
   build: (props, ctx, block) =>
     el(
       "header",
-      { class: cls("atl-nav atl-nav--centered", props.sticky && "atl-nav--sticky"), "data-nav": "true", "data-block": block.id },
+      {
+        class: cls(
+          "atl-nav atl-nav--centered",
+          props.sticky && "atl-nav--sticky",
+          block.style.hideOnMobile && "atl-hide-mobile",
+          block.motion !== "none" && "atl-motion",
+        ),
+        id: block.style.anchor,
+        "data-nav": "true",
+        "data-motion": block.motion !== "none" ? block.motion : undefined,
+        "data-block": block.id,
+      },
       container([
-        el("div", { class: "atl-nav__row" }, el("a", { class: "atl-nav__brand", href: "/" }, brandMark(ctx), el("span", { class: "atl-nav__name" }, ctx.site.businessName))),
+        el(
+          "div",
+          { class: "atl-nav__row" },
+          el("a", { class: "atl-nav__brand", href: "/" }, brandMark(ctx), el("span", { class: "atl-nav__name" }, ctx.site.businessName)),
+          el(
+            "button",
+            { class: "atl-nav__toggle", type: "button", "data-nav-toggle": "true", "aria-expanded": "false", "aria-label": "Apri il menu" },
+            icon("plus", 20),
+          ),
+        ),
         el(
           "nav",
           { class: "atl-nav__links atl-nav__links--centered", "aria-label": "Navigazione principale" },
-          ...props.links.map((link) => el("a", { class: "atl-nav__link", href: link.href }, link.label)),
+          ...props.links.map((link) =>
+            el("a", { class: "atl-nav__link", href: link.href, ...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {}) }, link.label),
+          ),
           props.cta ? cta(props.cta) : null,
         ),
       ]),
@@ -106,10 +135,33 @@ export const navbarMinimal = defineBlock({
   build: (props, ctx, block) =>
     el(
       "header",
-      { class: cls("atl-nav atl-nav--minimal", props.sticky && "atl-nav--sticky"), "data-block": block.id },
+      {
+        class: cls(
+          "atl-nav atl-nav--minimal",
+          props.sticky && "atl-nav--sticky",
+          block.style.hideOnMobile && "atl-hide-mobile",
+          block.motion !== "none" && "atl-motion",
+        ),
+        id: block.style.anchor,
+        "data-nav": "true",
+        "data-motion": block.motion !== "none" ? block.motion : undefined,
+        "data-block": block.id,
+      },
       container([
         el("a", { class: "atl-nav__brand", href: "/" }, brandMark(ctx), el("span", { class: "atl-nav__name" }, ctx.site.businessName)),
-        el("div", { class: "atl-nav__actions" }, props.cta ? cta(props.cta) : null),
+        (props.links.length > 0 || props.cta) ? el(
+          "button",
+          { class: "atl-nav__toggle", type: "button", "data-nav-toggle": "true", "aria-expanded": "false", "aria-label": "Apri il menu" },
+          icon("plus", 20),
+        ) : null,
+        el(
+          "nav",
+          { class: "atl-nav__links", "aria-label": "Navigazione principale" },
+          ...props.links.map((link) =>
+            el("a", { class: "atl-nav__link", href: link.href, ...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {}) }, link.label),
+          ),
+          props.cta ? cta(props.cta) : null,
+        ),
       ]),
     ),
 });
@@ -182,7 +234,7 @@ export const footerColumns = defineBlock({
           el("div", { class: "atl-footer__legal" }, ...props.legalLinks.map((link) => el("a", { href: link.href }, link.label))),
         ),
       ]),
-    ], "atl-footer");
+    ], "atl-footer", undefined, "footer");
   },
 });
 
@@ -211,6 +263,6 @@ export const footerMinimal = defineBlock({
           ),
         ),
       ]),
-    ], "atl-footer atl-footer--minimal");
+    ], "atl-footer atl-footer--minimal", undefined, "footer");
   },
 });
