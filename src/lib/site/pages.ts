@@ -16,6 +16,12 @@ export type PublicPage = {
 /** Pagine di approfondimento indicate nei motori di ricerca. */
 export const PUBLIC_PAGES: PublicPage[] = [
   {
+    href: "/guida",
+    label: "Guida",
+    blurb: "Il percorso completo dal brief al sito pubblicato: accesso, creazione, modifica, verifica, export e problemi comuni.",
+    priority: 0.9,
+  },
+  {
     href: "/funzionalita",
     label: "Funzionalità",
     blurb: "Il compilatore a stadi, il catalogo di sezioni, il design system, i gate di qualità, l'editor e l'export.",
@@ -44,6 +50,12 @@ export const LEGAL_PAGES: PublicPage[] = [
     priority: 0.4,
   },
   {
+    href: "/cookie",
+    label: "Cookie e preferenze",
+    blurb: "I cookie tecnici usati da Atelier, le preferenze salvate nel browser e come revocare il consenso.",
+    priority: 0.4,
+  },
+  {
     href: "/termini",
     label: "Termini d'uso",
     blurb: "Cosa puoi fare con Atelier, di chi sono i contenuti generati e quali verifiche restano tue.",
@@ -53,7 +65,7 @@ export const LEGAL_PAGES: PublicPage[] = [
 
 /**
  * Pagina di diagnostica: utile a chi installa il progetto, non è materiale di
- * vetrina — per questo resta fuori dall'indice dei motori di ricerca.
+ * vetrina: per questo resta fuori dall'indice dei motori di ricerca.
  */
 export const STATUS_PAGE: PublicPage = {
   href: "/stato",

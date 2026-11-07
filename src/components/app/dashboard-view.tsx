@@ -146,9 +146,13 @@ export function DashboardView() {
               </div>
             ))}
             <p className="col-span-3 border-t border-surface-800 pt-2 text-[11px] text-ink-600">
-              {user?.provider === "local"
-                ? "Sessione locale: i progetti vivono in questo browser. Con l'archivio cloud seguono il dispositivo anche da un altro computer."
-                : `Accesso con ${user?.provider}: con l'archivio cloud i progetti seguono l'account su ogni dispositivo.`}
+              {loading
+                ? "Verifico la sessione…"
+                : user?.provider === "local"
+                  ? "Sessione locale: i progetti vivono in questo browser. Con l'archivio cloud seguono l'account anche da un altro computer."
+                  : user
+                    ? `Accesso con ${user.provider}: con l'archivio cloud i progetti seguono l'account su ogni dispositivo.`
+                    : "Sessione non attiva: i progetti locali restano in questo browser."}
             </p>
           </div>
         </section>

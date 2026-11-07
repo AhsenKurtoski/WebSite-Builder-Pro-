@@ -148,6 +148,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
       <SiteHeader />
 
+      <main id="contenuto">
       {/* Apertura */}
       <section className="relative isolate">
         <div className="aurora" />
@@ -390,6 +391,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

@@ -1,6 +1,6 @@
 import { ApiError, errorResponse, validationFailed } from "@/lib/util/api-error";
 import { redirectWithCookies, serializeCookie } from "@/lib/auth/cookies";
-import { isSecureRequest } from "@/lib/auth/server";
+import { isSecureRequest, requestOrigin } from "@/lib/auth/server";
 import { OAUTH_STATE_COOKIE, randomState, signValue } from "@/lib/auth/session";
 import { authorizeUrl, isOAuthProvider, requireProviderConfig } from "@/lib/auth/oauth";
 import { safeNext } from "@/lib/auth/navigation";
@@ -31,7 +31,7 @@ export async function GET(
     const url = new URL(request.url);
     const next = safeNext(url.searchParams.get("next"));
     const state = randomState();
-    const redirectUri = `${url.origin}/api/auth/${provider}/callback`;
+    const redirectUri = `${requestOrigin(request)}/api/auth/${provider}/callback`;
 
     return redirectWithCookies(authorizeUrl(provider, { redirectUri, state }), [
       serializeCookie(OAUTH_STATE_COOKIE, signValue(`${state}|${next}`), {

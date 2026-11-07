@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CookieNotice } from "@/components/site/cookie-notice";
 import { AUTHOR_NAME, SITE_NAME, SITE_URL, STUDIO_NAME } from "@/lib/util/site-url";
 
 const siteUrl = SITE_URL;
@@ -47,7 +48,10 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieNotice />
+      </body>
     </html>
   );
 }

@@ -30,7 +30,7 @@ function serializeAttrs(attrs: Record<string, string | number | boolean | null |
 }
 
 export type HtmlOptions = {
-  /** Indenta l'output per leggibilit� (l'HTML resta identico, cambia solo la formattazione). */
+  /** Indenta l'output per leggibilità (l'HTML resta identico, cambia solo la formattazione). */
   pretty?: boolean;
   /** Livello di indentazione iniziale. */
   depth?: number;

@@ -4,6 +4,7 @@ import { LoginForm } from "@/components/auth/login-form";
 import { getSession, providerStatuses } from "@/lib/auth/server";
 import { safeNext } from "@/lib/auth/navigation";
 import { isLocalSecret } from "@/lib/auth/session";
+import { AUTHOR_NAME, STUDIO_NAME } from "@/lib/util/site-url";
 
 export const metadata = {
   title: "Accedi",
@@ -31,7 +32,7 @@ export default async function LoginPage({
   const read = (key: string) => (typeof params[key] === "string" ? (params[key] as string) : undefined);
 
   return (
-    <main className="relative isolate grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+    <main className="relative isolate grid min-h-screen overflow-hidden lg:grid-cols-[1.05fr_1fr]">
       <div className="aurora opacity-25" />
 
       <section className="relative hidden flex-col justify-between gap-10 border-r border-surface-800 p-10 lg:flex">
@@ -69,6 +70,7 @@ export default async function LoginPage({
         <p className="max-w-sm text-[11px] text-ink-600">
           Sessione firmata HMAC. {isLocalSecret() ? "Su questa installazione la chiave di firma è quella locale di sviluppo: aggiungi ATELIER_SESSION_SECRET per usarla fra macchine." : "Chiave di firma presa da ATELIER_SESSION_SECRET."}
         </p>
+        <p className="max-w-sm text-[11px] text-ink-600">Un prodotto {STUDIO_NAME}. Creato e sviluppato da {AUTHOR_NAME}.</p>
       </section>
 
       <section className="relative grid place-items-center p-6">

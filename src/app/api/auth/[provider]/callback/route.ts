@@ -3,7 +3,7 @@ import { clearCookie, parseCookies, redirectWithCookies, serializeCookie } from 
 import { OAUTH_STATE_COOKIE, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, signSession, verifyValue } from "@/lib/auth/session";
 import { exchangeCode, fetchUser, isOAuthProvider, requireProviderConfig } from "@/lib/auth/oauth";
 import { safeNext } from "@/lib/auth/navigation";
-import { isSecureRequest } from "@/lib/auth/server";
+import { isSecureRequest, requestOrigin } from "@/lib/auth/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +49,7 @@ export async function GET(
       ]);
     }
 
-    const redirectUri = `${url.origin}/api/auth/${provider}/callback`;
+    const redirectUri = `${requestOrigin(request)}/api/auth/${provider}/callback`;
     const token = await exchangeCode(provider, { code, redirectUri });
     const user = await fetchUser(provider, token);
 

@@ -68,7 +68,7 @@ export const SITE_JS = `/* Atelier — comportamento del sito. Nessuna dipendenz
       var trigger = target && target.closest ? target.closest("[data-atl-consent-open], a[href='#preferenze-cookie']") : null;
       if (!trigger) return;
       event.preventDefault();
-      try { window.localStorage.removeItem(KEY); } catch (error) { /* modalit? privata */ }
+      try { window.localStorage.removeItem(KEY); } catch (error) { /* modalità privata */ }
       notice.hidden = false;
       notice.removeAttribute("data-consent");
     });

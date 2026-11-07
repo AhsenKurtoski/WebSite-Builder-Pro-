@@ -50,18 +50,11 @@ export function useSession(): SessionState {
   return state;
 }
 
-/** Identificativo con cui separare i progetti locali: coincide con quello del server. */
-export function localDeviceId(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)atelier_device=([a-f0-9]{16,64})(?:;|$)/i);
-  return match?.[1] ?? null;
-}
-
+/** Identificativo con cui separare i progetti: lo stesso usato dalla sessione. */
 export function ownerOf(user: AuthUser | null): string {
   if (!user) return "local:ospite";
   if (user.provider !== "local") return `${user.provider}:${user.id}`;
-  const device = localDeviceId();
-  return device ? `local:${device}` : "local:ospite";
+  return `local:${user.id}`;
 }
 
 export function useSignOut(): () => Promise<void> {

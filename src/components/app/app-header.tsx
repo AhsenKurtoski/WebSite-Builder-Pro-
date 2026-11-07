@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { FolderOpen, KeyRound, Plus } from "lucide-react";
+import { BookOpen, FolderOpen, KeyRound, Plus } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
 
 const NAV = [
   { href: "/dashboard", label: "Progetti", Icon: FolderOpen },
   { href: "/nuovo", label: "Nuovo sito", Icon: Plus },
+  { href: "/guida", label: "Guida", Icon: BookOpen },
   { href: "/impostazioni", label: "Chiavi AI", Icon: KeyRound },
 ];
 

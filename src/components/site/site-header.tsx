@@ -98,7 +98,7 @@ export function SiteHeader() {
           <Link className="btn btn-primary hidden sm:inline-flex" href="/login?next=/nuovo">
             Inizia gratis
           </Link>
-          <UserMenu compact />
+          <UserMenu compact guestLinks="signin" />
 
           <button
             type="button"

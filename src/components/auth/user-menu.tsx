@@ -4,7 +4,14 @@ import Link from "next/link";
 import { initials, useSession, useSignOut } from "@/lib/auth/session-client";
 
 /** Avatar, nome e menu: identico nell'area di lavoro e nello Studio. */
-export function UserMenu({ compact = false }: { compact?: boolean }) {
+export function UserMenu({
+  compact = false,
+  guestLinks = "both",
+}: {
+  compact?: boolean;
+  /** Sulla vetrina il pulsante principale è già nella barra: evita il doppione. */
+  guestLinks?: "both" | "signin";
+}) {
   const { user, loading, localSecret } = useSession();
   const signOut = useSignOut();
 
@@ -18,9 +25,11 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
         <Link href="/login" className="btn btn-ghost">
           Accedi
         </Link>
-        <Link href="/login?next=/nuovo" className="btn btn-primary">
-          Inizia gratis
-        </Link>
+        {guestLinks === "both" ? (
+          <Link href="/login?next=/nuovo" className="btn btn-primary">
+            Inizia gratis
+          </Link>
+        ) : null}
       </div>
     );
   }

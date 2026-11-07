@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/site/marketing-shell";
 import { SITE_NAME, absoluteUrl } from "@/lib/util/site-url";
@@ -116,8 +116,7 @@ export default function TerminiPage() {
 
           <h2>8. Dati e privacy</h2>
           <p>
-            Il trattamento dei dati è descritto nella pagina <Link href="/privacy">Privacy</Link>. In sintesi: i progetti vivono nel
-            tuo browser, le chiavi AI sono variabili d&apos;ambiente del server e non arrivano mai al browser e l&apos;unico cookie è quello tecnico di sessione.
+            Il trattamento dei dati è descritto nella pagina <Link href="/privacy">Privacy</Link>. In sintesi: i progetti vivono nel tuo browser, le chiavi AI sono variabili d&apos;ambiente del server e non arrivano mai al browser; i cookie sono solo tecnici (sessione, protezione OAuth e identificativo del workspace). I dettagli sono nella pagina <Link href="/cookie">Cookie e preferenze</Link>.
           </p>
 
           <h2>9. Modifiche a questi termini</h2>
@@ -126,7 +125,7 @@ export default function TerminiPage() {
             aggiornata. Se un&apos;istanza è tua, puoi adattare questi termini alla tua attività: sono scritti per essere riutilizzati.
           </p>
 
-          <p className="text-[11px] text-ink-600">Ultimo aggiornamento: 27 settembre 2026.</p>
+          <p className="text-[11px] text-ink-600">Titolare e autore del progetto: Ahsen Kurtoski (Ahsen Studio). Ultimo aggiornamento: 7 novembre 2026.</p>
         </div>
       </article>
     </MarketingShell>

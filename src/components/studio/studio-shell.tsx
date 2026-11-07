@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { PreviewFrame } from "./preview-frame";
 import { PropsEditor } from "./props-editor";
 import { useStudio, variantOptions } from "@/lib/store/site-store";
@@ -238,6 +239,9 @@ export function StudioShell({ siteId }: { siteId: string }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link className="btn btn-ghost px-2" href="/guida" title="Guida completa" aria-label="Apri la guida completa">
+            <BookOpen size={16} aria-hidden />
+          </Link>
           <div className="hidden overflow-hidden rounded-tool border border-surface-700 sm:flex">
             {(["mobile", "tablet", "desktop"] as const).map((item) => (
               <button

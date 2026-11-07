@@ -12,6 +12,8 @@ import {
 import { parseCookies, serializeCookie } from "./cookies";
 import { OAUTH_PROVIDERS, providerConfig, type OAuthProviderId } from "./oauth";
 
+export { isSecureRequest, requestOrigin } from "./origin";
+
 /**
  * Ponte fra le sessioni firmate e Next: leggere il cookie, proteggere una
  * pagina, emettere o cancellare la sessione. Nessuna chiamata di rete.
@@ -39,15 +41,6 @@ export function sessionFromRequest(request: Request): AuthUser | null {
  * (Vercel, qualunque dominio) lo è sempre, in locale no — e la sessione
  * funziona comunque su `http://localhost`.
  */
-export function isSecureRequest(request: Request): boolean {
-  try {
-    if (new URL(request.url).protocol === "https:") return true;
-  } catch {
-    /* URL non leggibile: si resta sulla scelta prudente */
-  }
-  return request.headers.get("x-forwarded-proto") === "https";
-}
-
 export function sessionCookie(user: AuthUser, secure: boolean): string {
   return serializeCookie(SESSION_COOKIE, signSession(user), {
     maxAge: SESSION_MAX_AGE_SECONDS,

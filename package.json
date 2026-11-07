@@ -2,6 +2,7 @@
   "name": "atelier",
   "version": "0.1.0",
   "private": true,
+  "author": "Ahsen Kurtoski (Ahsen Studio)",
   "description": "Atelier — website builder AI professionale, local-first, con compilatore a stadi ed export statico autosufficiente.",
   "engines": {
     "node": ">=22.0.0"

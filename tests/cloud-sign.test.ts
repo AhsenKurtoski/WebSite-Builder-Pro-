@@ -35,11 +35,16 @@ describe("costruzione della busta", () => {
   });
 
   it("la stessa operazione firmata con lo stesso istante dà la stessa firma (HMAC, non un nonce)", () => {
-    const a = JSON.parse(signedBody({ op: "list" }, SECRET)) as { sig: string };
-    const b = JSON.parse(signedBody({ op: "list" }, SECRET)) as { sig: string };
-    expect(a.sig).toBe(b.sig);
-    expect(verifySignature(signedBody({ op: "list" }, SECRET), SECRET).ok).toBe(true);
-    vi.useRealTimers();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-27T09:00:00.000Z"));
+    try {
+      const a = JSON.parse(signedBody({ op: "list" }, SECRET)) as { sig: string };
+      const b = JSON.parse(signedBody({ op: "list" }, SECRET)) as { sig: string };
+      expect(a.sig).toBe(b.sig);
+      expect(verifySignature(signedBody({ op: "list" }, SECRET), SECRET).ok).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("un corpo oltre il tetto non viene nemmeno costruito", () => {

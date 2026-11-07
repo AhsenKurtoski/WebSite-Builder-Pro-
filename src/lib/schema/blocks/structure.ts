@@ -81,7 +81,7 @@ export const navbarCentered = defineBlock({
   variant: "centered",
   label: "Navigazione centrata",
   category: "structure",
-  description: "Marchio su una riga, voci di menu centrate sotto: adatto a studi e attivit? di prestigio.",
+  description: "Marchio su una riga, voci di menu centrate sotto: adatto a studi e attività di prestigio.",
   schema: NavProps,
   defaults: NavProps.parse({ links: [], sticky: false }),
   tags: ["nav", "menu", "centered"],

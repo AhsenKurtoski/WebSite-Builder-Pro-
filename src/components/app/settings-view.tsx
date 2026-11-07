@@ -5,6 +5,7 @@ import { AppHeader } from "./app-header";
 import { KeysPanel } from "./keys-panel";
 import { Avatar } from "@/components/auth/user-menu";
 import { ownerOf, useSession, useSignOut } from "@/lib/auth/session-client";
+import { AUTHOR_NAME, STUDIO_NAME } from "@/lib/util/site-url";
 
 export function SettingsView({ pendingLogin }: { pendingLogin: boolean }) {
   const { user, localSecret, loading } = useSession();
@@ -80,6 +81,13 @@ export function SettingsView({ pendingLogin }: { pendingLogin: boolean }) {
               <li>· La sessione è un cookie HttpOnly firmato HMAC, valido 30 giorni.</li>
               <li>· I progetti restano in IndexedDB: puoi esportarli quando vuoi, anche senza account.</li>
             </ul>
+          </div>
+
+          <div className="card grid gap-1 p-5">
+            <h2 className="text-sm font-semibold">Informazioni sul prodotto</h2>
+            <p className="text-xs leading-relaxed text-ink-500">
+              Atelier è un prodotto {STUDIO_NAME}. Progettato e sviluppato da {AUTHOR_NAME}. La guida completa resta disponibile dal menu e dall’editor.
+            </p>
           </div>
         </section>
 

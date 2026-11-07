@@ -17,6 +17,7 @@ import {
 import { signSession, verifySession, signValue, verifyValue, displayName, userKey } from "@/lib/auth/session";
 import { parseCookies, serializeCookie, clearCookie } from "@/lib/auth/cookies";
 import { safeNext } from "@/lib/auth/navigation";
+import { ownerOf } from "@/lib/auth/session-client";
 
 const NOW = "2026-09-27T09:00:00.000Z";
 
@@ -230,6 +231,9 @@ describe("sessioni firmate", () => {
   it("il workspace distingue le persone", () => {
     expect(userKey(user)).toBe("github:42");
     expect(userKey({ ...user, provider: "local", id: "marco" })).toBe("local:marco");
+    expect(ownerOf(null)).toBe("local:ospite");
+    expect(ownerOf(user)).toBe("github:42");
+    expect(ownerOf({ ...user, provider: "local", id: "marco" })).toBe("local:marco");
     expect(displayName("   ")).toBe("Ospite");
     expect(displayName("<script>alert(1)</script>")).not.toContain("<");
     expect(displayName("x".repeat(80)).length).toBeLessThanOrEqual(41);

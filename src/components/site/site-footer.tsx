@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HOME_SECTIONS, LEGAL_PAGES, PUBLIC_PAGES, STATUS_PAGE } from "@/lib/site/pages";
+import { AUTHOR_NAME, STUDIO_NAME } from "@/lib/util/site-url";
 
 type Column = { title: string; links: { href: string; label: string }[] };
 
@@ -92,9 +93,16 @@ export function SiteFooter() {
 
         <div className="flex flex-col gap-3 text-[11px] text-ink-600 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            Atelier · website builder AI local-first. I progetti restano nel tuo browser: cancellarli è un&apos;azione tua, non una
+            Atelier è un website builder AI local-first. I progetti restano nel tuo browser: cancellarli è un&apos;azione tua, non una
             richiesta a un servizio.
           </p>
+          <p className="sm:text-right">
+            Progettato e sviluppato da <span className="text-ink-400">{AUTHOR_NAME}</span> ·{" "}
+            <span className="text-ink-400">{STUDIO_NAME}</span>
+          </p>
+        </div>
+        <div className="mt-4 flex flex-col gap-3 text-[11px] text-ink-600 sm:flex-row sm:items-center sm:justify-between">
+          <p>Atelier è un prodotto {STUDIO_NAME}. Contenuti e marchio appartengono al rispettivo titolare.</p>
           <nav aria-label="Collegamenti rapidi" className="flex flex-wrap gap-x-4 gap-y-2">
             {HOME_SECTIONS.slice(0, 3).map((section) => (
               <Link key={section.href} className="transition-colors hover:text-ink-300" href={section.href}>

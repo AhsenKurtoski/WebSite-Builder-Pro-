@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/site/marketing-shell";
-import { SITE_NAME, absoluteUrl } from "@/lib/util/site-url";
+import { SITE_NAME, STUDIO_NAME, absoluteUrl } from "@/lib/util/site-url";
 
 export const metadata: Metadata = {
   title: "Privacy",
   description:
-    "Cosa raccoglie Atelier e cosa non raccoglie mai: progetti nel browser, chiavi AI solo sul server, un solo cookie tecnico di sessione, nessun tracciamento.",
+    "Cosa raccoglie Atelier e cosa non raccoglie mai: progetti nel browser, chiavi AI solo sul server, solo cookie tecnici di sessione, nessun tracciamento.",
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: "Privacy di Atelier",
-    description: "Progetti nel browser, chiavi solo sul server, un solo cookie tecnico: la mappa dei dati in una pagina.",
+    description: "Progetti nel browser, chiavi solo sul server, solo cookie tecnici: la mappa dei dati in una pagina.",
     url: absoluteUrl("/privacy"),
     type: "article",
   },
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
           l&apos;elenco esatto di quello che esiste, dove vive e per quanto.
         </p>
       }
-      meta={["nessun tracciamento", "un solo cookie tecnico", "progetti nel browser"]}
+      meta={["nessun tracciamento", "solo cookie tecnici", "progetti nel browser"]}
       cta={{
         title: "Vuoi provare senza lasciare nulla indietro?",
         text: "Entra in locale: nessun servizio esterno coinvolto, i progetti restano nel browser e li cancelli quando vuoi.",
@@ -122,10 +122,12 @@ export default function PrivacyPage() {
               <li>
                 <code>atelier_oauth_state</code>: solo durante l&apos;accesso con GitHub o Google, durata 10 minuti.
               </li>
+              <li>
+                <code>atelier_device</code>: identificativo casuale del browser usato dall&apos;archivio cloud per tenere separati i workspace locali, durata 1 anno. È leggibile da JavaScript e non contiene dati personali.
+              </li>
             </ul>
             <p>
-              Non ci sono cookie di profilazione e non c&apos;è nessun banner da accettare, perché non c&apos;è nulla da
-              autorizzare oltre alla tecnica.
+              Non ci sono cookie di profilazione, pixel o statistiche di terze parti. L&apos;avviso che vedi nel sito è informativo: “Solo necessari” e “Va bene” hanno lo stesso effetto, perché non esiste un consenso opzionale da raccogliere. Puoi riaprirlo dalla pagina <Link href="/cookie">Cookie e preferenze</Link>.
             </p>
 
             <h2>Conservazione e cancellazione</h2>
@@ -153,7 +155,7 @@ export default function PrivacyPage() {
               Se questa informativa cambia, la data qui sotto cambia con lei. I progetti generati dai siti esportati hanno una loro
               pagina privacy: è materiale tuo, da adattare alla tua attività prima della pubblicazione.
             </p>
-            <p className="text-[11px] text-ink-600">Ultimo aggiornamento: 27 settembre 2026.</p>
+            <p className="text-[11px] text-ink-600">Titolare e autore del progetto: Ahsen Kurtoski ({STUDIO_NAME}). Ultimo aggiornamento: 7 novembre 2026.</p>
           </div>
         </article>
 
