@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { isSecureRequest, requestOrigin } from "@/lib/auth/origin";
+import { oauthCallbackPath } from "@/lib/auth/oauth";
 
 afterEach(() => {
   delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -38,5 +39,10 @@ describe("origine pubblica per OAuth", () => {
     expect(requestOrigin(req("http://interno/"))).toBe("https://atelier.example.com");
     const withHost = req("http://interno/", { host: "preview.example.com", "x-forwarded-proto": "https" });
     expect(requestOrigin(withHost)).toBe("https://preview.example.com");
+  });
+
+  it("Google usa il callback registrato, GitHub quello API", () => {
+    expect(oauthCallbackPath("google")).toBe("/google/callback");
+    expect(oauthCallbackPath("github")).toBe("/api/auth/github/callback");
   });
 });

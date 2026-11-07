@@ -85,9 +85,9 @@ Dalla dashboard un progetto si scarica in tre modi — archivio ZIP, HTML singol
 Le credenziali si leggono solo dall'ambiente, mai dal client. Il flusso è OAuth 2 authorization code, scritto a mano: nessuna libreria di autenticazione, nessun database utenti.
 
 1. Crea l'app OAuth e imposta come callback:
-   - `http://localhost:3000/api/auth/github/callback`
-   - `http://localhost:3000/api/auth/google/callback`
-   - in produzione: `${NEXT_PUBLIC_SITE_URL}/api/auth/github/callback` (o `google`).
+   - GitHub: `http://localhost:3000/api/auth/github/callback`
+   - Google: `http://localhost:3000/google/callback`
+   - in produzione: `${NEXT_PUBLIC_SITE_URL}/api/auth/github/callback` e `${NEXT_PUBLIC_SITE_URL}/google/callback`.
 2. Metti le credenziali in `.env.local`:
    - `AUTH_GITHUB_ID` e `AUTH_GITHUB_SECRET`
    - `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET`

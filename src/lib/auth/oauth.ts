@@ -60,6 +60,15 @@ export function isOAuthProvider(value: string): value is OAuthProviderId {
   return value === "github" || value === "google";
 }
 
+/**
+ * Google usa il percorso registrato nel client OAuth esistente; GitHub resta
+ * sul percorso API standard. Il percorso deve essere identico fra authorize e
+ * scambio del codice, altrimenti il provider rifiuta il callback.
+ */
+export function oauthCallbackPath(id: OAuthProviderId): string {
+  return id === "google" ? "/google/callback" : `/api/auth/${id}/callback`;
+}
+
 function firstEnv(names: string[]): string {
   for (const name of names) {
     const value = process.env[name];

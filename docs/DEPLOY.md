@@ -120,11 +120,12 @@ Senza `--dominio` lo script confronta con l'indirizzo che stai interrogando e se
 3. **Authorization callback URL**: `https://<tuo-dominio>/api/auth/github/callback`.
    Per lo sviluppo locale serve una seconda app (o la stessa con callback `http://localhost:3000/api/auth/github/callback`).
 4. *Generate a new client secret* → copia **Client ID** e **Client secret** in `AUTH_GITHUB_ID` e `AUTH_GITHUB_SECRET`.
+   Non usare un personal access token: l'accesso OAuth richiede le due credenziali dell'OAuth App, non un token `ghp_...`.
 
 ### Google
 
 1. console.cloud.google.com → *API e servizi* → *Credenziali* → **Crea credenziali** → *ID client OAuth* → tipo **Applicazione web**.
-2. **URI di reindirizzamento autorizzati**: `https://<tuo-dominio>/api/auth/google/callback` (più `http://localhost:3000/api/auth/google/callback` per lo sviluppo).
+2. **URI di reindirizzamento autorizzati**: `https://<tuo-dominio>/google/callback` (più `http://localhost:3000/google/callback` per lo sviluppo).
 3. Scopes: basta `email`, `profile` (sono già richiesti dal codice).
 4. Copia **ID client** e **Client secret** in `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET`.
 
