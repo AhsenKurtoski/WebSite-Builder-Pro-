@@ -4,6 +4,7 @@ import { classifyProviderError } from "@/lib/ai/quota-ledger";
 import { PROVIDERS, providerSpec, resolveKeys, resolveModel, type ProviderId } from "@/lib/ai/providers";
 import { assertSameOrigin, checkRateLimit, readJsonBody } from "@/lib/util/api-guard";
 import { errorResponse } from "@/lib/util/api-error";
+import { structuredProviderOptions } from "@/lib/ai/compile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ export async function POST(request: Request): Promise<Response> {
       prompt: "Rispondi esattamente con: ok",
       // Budget ampio: i modelli con ragionamento consumano token prima della risposta.
       maxOutputTokens: 256,
+      providerOptions: structuredProviderOptions(payload.provider),
       abortSignal: request.signal,
     });
 

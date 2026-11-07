@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai";
+import { generateText, Output, type JSONValue } from "ai";
 import { z } from "zod";
 import { FONT_PAIRINGS, type StylePreset } from "@/lib/design/tokens";
 import { harmonyHue } from "@/lib/design/oklch";
@@ -184,7 +184,8 @@ function patchBlocks(page: Page, type: string, patch: (block: Block) => Record<s
  */
 export function structuredProviderOptions(
   provider: ProviderId,
-): Record<string, Record<string, string | boolean>> | undefined {
+): Record<string, Record<string, JSONValue>> | undefined {
+  if (provider === "gemini") return { google: { thinkingConfig: { thinkingLevel: "minimal" } } };
   if (usesPlainJson(provider)) return { [provider]: { structuredOutputs: false, reasoningEffort: "low" } };
   if (provider === "cerebras") return { cerebras: { strictJsonSchema: false, reasoningEffort: "low" } };
   return undefined;
