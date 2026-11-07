@@ -78,8 +78,13 @@ describe("output strutturato dei provider", () => {
     });
   });
 
+  it("Gemini resta leggero per non consumare il budget in ragionamento", () => {
+    expect(structuredProviderOptions("gemini")).toEqual({
+      google: { thinkingConfig: { thinkingLevel: "low" } },
+    });
+  });
+
   it("gli altri provider restano senza opzioni aggiuntive", () => {
-    expect(structuredProviderOptions("gemini")).toBeUndefined();
     expect(structuredProviderOptions("gemini-fallback")).toBeUndefined();
     expect(structuredProviderOptions("openrouter")).toBeUndefined();
     expect(structuredProviderOptions("cloudflare")).toBeUndefined();

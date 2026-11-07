@@ -185,7 +185,7 @@ function patchBlocks(page: Page, type: string, patch: (block: Block) => Record<s
 export function structuredProviderOptions(
   provider: ProviderId,
 ): Record<string, Record<string, JSONValue>> | undefined {
-  if (provider === "gemini") return { google: { thinkingConfig: { thinkingLevel: "minimal" } } };
+  if (provider === "gemini") return { google: { thinkingConfig: { thinkingLevel: "low" } } };
   if (usesPlainJson(provider)) return { [provider]: { structuredOutputs: false, reasoningEffort: "low" } };
   if (provider === "cerebras") return { cerebras: { strictJsonSchema: false, reasoningEffort: "low" } };
   return undefined;
