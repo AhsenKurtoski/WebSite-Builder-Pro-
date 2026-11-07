@@ -34,7 +34,7 @@ const OPTIONAL = [
   ["OPENROUTER_API_KEY", "router di riserva (openrouter.ai/keys)"],
   ["CLOUDFLARE_ACCOUNT_ID", "Cloudflare Workers AI — image e testo di riserva"],
   ["CLOUDFLARE_API_TOKEN", "Cloudflare Workers AI"],
-  ["NEXT_PUBLIC_SITE_URL", "solo su host diversi da Vercel: su Vercel il dominio lo decide la piattaforma"],
+  ["NEXT_PUBLIC_SITE_URL", "dominio canonico pubblico; se assente su Vercel vale VERCEL_PROJECT_PRODUCTION_URL"],
 ];
 
 const problems = [];

@@ -98,7 +98,7 @@ La stessa lettura, in forma leggibile, è su `https://<tuo-dominio>/stato`: quel
 ### Il dominio
 
 1. **Vercel → Project → Settings → Domains → Add**: scrivi il dominio e segui le istruzioni DNS che ti mostra (un `CNAME` verso `cname.vercel-dns.com`, o i record `A` per l'apex).
-2. **Nessuna variabile da toccare.** Su Vercel il dominio canonico arriva da `VERCEL_PROJECT_PRODUCTION_URL`, che la piattaforma aggiorna da sola: sitemap, `robots.txt`, Open Graph e dati strutturati si spostano sul dominio nuovo al primo deploy successivo.
+2. **Scegli il dominio canonico.** Se il progetto ha più domini, imposta `NEXT_PUBLIC_SITE_URL` al dominio che vuoi usare: ha la precedenza su `VERCEL_PROJECT_PRODUCTION_URL`. Senza questa variabile, Vercel usa il dominio stabile di produzione e sitemap, `robots.txt`, Open Graph e dati strutturati si spostano da soli al deploy successivo.
 3. **Verifica con lo script**, dicendogli quale dominio pretendere:
 
 ```bash
@@ -107,7 +107,7 @@ npm run check:deploy -- https://<tuo-dominio> --dominio https://<tuo-dominio>
 
 Senza `--dominio` lo script confronta con l'indirizzo che stai interrogando e segnala la differenza come avviso: è normale su un deploy di anteprima (il canonico punta alla produzione), non lo è sul dominio finale.
 
-`NEXT_PUBLIC_SITE_URL` serve solo se pubblichi **fuori** da Vercel (Netlify, un server tuo): lì va impostata **prima della build**, perché è una variabile `NEXT_PUBLIC_*` e Next la incide nel pacchetto in fase di costruzione, non la rilegge all'avvio.
+`NEXT_PUBLIC_SITE_URL` va impostata **prima della build**, perché è una variabile `NEXT_PUBLIC_*` e Next la incide nel pacchetto in fase di costruzione, non la rilegge all'avvio. Serve su Netlify o su un server tuo e anche su Vercel quando vuoi forzare un dominio diverso da quello di produzione della piattaforma.
 
 ---
 

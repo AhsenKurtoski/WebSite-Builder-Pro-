@@ -90,7 +90,7 @@ Le credenziali si leggono solo dall'ambiente, mai dal client. Il flusso è OAuth
    - `AUTH_GITHUB_ID` e `AUTH_GITHUB_SECRET`
    - `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET`
 3. Imposta `ATELIER_SESSION_SECRET` (almeno 16 caratteri) per firmare le sessioni fra macchine diverse.
-4. Imposta `NEXT_PUBLIC_SITE_URL` al dominio pubblico; dietro un proxy, Atelier usa `x-forwarded-proto` e `x-forwarded-host` per costruire il callback.
+4. Imposta `NEXT_PUBLIC_SITE_URL` al dominio pubblico; ha la precedenza anche su Vercel e va scritta prima della build. Dietro un proxy, Atelier usa `x-forwarded-proto` e `x-forwarded-host` per costruire il callback.
 
 Se una coppia di credenziali manca, la pagina di accesso lo dice indicando il nome esatto della variabile e l'indirizzo dove crearle; il pulsante **Entra in locale** funziona comunque. L'origine pubblica del callback OAuth è coperta da `tests/auth-origin.test.ts`.
 
