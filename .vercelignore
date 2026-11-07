@@ -4,3 +4,8 @@
 website-builder-pro-main.zip
 .next-dev.log
 tsconfig.tsbuildinfo
+.vercel
+.env
+.env.local
+.env*.local
+client_secret_*.json

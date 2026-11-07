@@ -28,3 +28,5 @@ verify-output.txt
 tmp-probe-*.mjs
 .next-*.log
 tsconfig.tsbuildinfo
+.vercel
+client_secret_*.json
